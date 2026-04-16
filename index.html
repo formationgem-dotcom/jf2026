@@ -20,9 +20,11 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 #app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
 
 /* HEADER */
-.header { background: var(--navy2); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,.3); position: sticky; top: 0; z-index: 10; }
-.header-title { font-size: 15px; font-weight: 700; letter-spacing: .5px; }
-.header-team { font-size: 12px; background: var(--gold); color: var(--navy); padding: 4px 10px; border-radius: 20px; font-weight: 700; cursor: pointer; }
+.header { background: var(--navy2); padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,.3); position: sticky; top: 0; z-index: 10; }
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-logo { height: 36px; border-radius: 6px; object-fit: contain; }
+.header-title { font-size: 14px; font-weight: 700; letter-spacing: .5px; }
+.header-team { font-size: 12px; background: var(--gold); color: var(--navy); padding: 4px 10px; border-radius: 20px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .header-team:hover { opacity: .85; }
 
 /* CONTENT */
@@ -42,8 +44,17 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 .screen-title { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
 .screen-sub { font-size: 13px; color: #aaa; margin-bottom: 24px; }
 .teams-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.team-btn { background: var(--navy2); border: 2px solid transparent; border-radius: 14px; padding: 18px 12px; text-align: center; cursor: pointer; transition: all .15s; font-size: 15px; font-weight: 700; color: var(--white); }
+.team-btn { background: var(--navy2); border: 2px solid transparent; border-radius: 14px; padding: 14px 12px; text-align: center; cursor: pointer; transition: all .15s; font-size: 14px; font-weight: 700; color: var(--white); }
+.team-btn.taken { border-color: var(--gold); background: #2a2a50; }
 .team-btn:hover, .team-btn:active { border-color: var(--gold); background: #3a3a6a; transform: scale(.97); }
+
+/* TEAM FORM */
+.form-label { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: block; }
+.text-input { width: 100%; background: var(--navy2); border: 2px solid #444; border-radius: 10px; padding: 12px 14px; color: var(--white); font-size: 15px; outline: none; }
+.text-input:focus { border-color: var(--gold); }
+.text-input::placeholder { color: #666; }
+.form-group { margin-bottom: 16px; }
+.members-list { display: flex; flex-direction: column; gap: 8px; }
 
 /* PRODUCT CARD */
 .workshop-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: .5px; margin-bottom: 16px; }
@@ -106,7 +117,9 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
   #app { background: #f0f4f8; }
   .header { background: var(--navy); }
   .team-btn { color: var(--navy); background: var(--white); border-color: #ddd; }
+  .team-btn.taken { border-color: var(--gold); background: #fffbe6; }
   .team-btn:hover { background: var(--blue-l); border-color: var(--blue2); }
+  .text-input { background: var(--white); border-color: #ddd; color: var(--navy); }
   .symptom-card { background: var(--white); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
   .symptom-text { color: var(--navy); }
   .already-answered { background: var(--white); color: var(--text); }
@@ -126,8 +139,6 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 <script>
 /* ═══════════════════════════════════════════
    CONFIGURATION FIREBASE
-   Remplacez les valeurs ci-dessous par celles
-   de votre projet Firebase
 ═══════════════════════════════════════════ */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCZVWNDjMG8XzN1X5L8UwrFZ8ThMk56zO0",
@@ -140,7 +151,7 @@ const FIREBASE_CONFIG = {
 };
 
 /* ═══════════════════════════════════════════
-   DONNÉES — ÉQUIPES
+   DONNÉES — ÉQUIPES (10 slots)
 ═══════════════════════════════════════════ */
 const TEAMS = Array.from({length: 10}, (_, i) => ({
   id: `E${String(i+1).padStart(2,'0')}`,
@@ -255,7 +266,6 @@ function init() {
     firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.database();
   } catch(e) {
-    // Firebase not configured yet — show demo mode
     db = null;
   }
   const saved = localStorage.getItem('jf2026_team');
@@ -270,8 +280,7 @@ function route(productId) {
     if (!currentTeam) { pendingProduct = productId; showTeamSelect(); }
     else showProduct(productId);
   } else {
-    if (!currentTeam) showHome();
-    else showHome();
+    showHome();
   }
 }
 
@@ -281,7 +290,10 @@ function setApp(html) { document.getElementById('app').innerHTML = html; }
 function header(showTeam = true) {
   const team = currentTeam ? `<span class="header-team" onclick="changeTeam()">${currentTeam.name}</span>` : '';
   return `<div class="header">
-    <span class="header-title">⚡ Filtering Game JF2026</span>
+    <div class="header-left">
+      <img src="Logo JF2026.jpg" alt="JF2026" class="header-logo" onerror="this.style.display='none'">
+      <span class="header-title">⚡ Filtering Game</span>
+    </div>
     ${showTeam ? team : ''}
   </div>`;
 }
@@ -294,38 +306,144 @@ function showToast(msg, duration = 2500) {
 
 /* ---- SCREENS ---- */
 function showHome() {
-  const team = currentTeam ? `<p style="color:var(--gold);font-weight:700;margin-top:12px">Connecté : ${currentTeam.name}</p>` : '';
+  const teamInfo = currentTeam
+    ? `<div style="margin-top:16px">
+        <p style="color:var(--gold);font-weight:700">${currentTeam.name}</p>
+        ${currentTeam.members && currentTeam.members.length > 0
+          ? `<p style="font-size:12px;color:#aaa;margin-top:4px">${currentTeam.members.join(' · ')}</p>`
+          : ''}
+       </div>`
+    : '';
   setApp(`${header()}
   <div class="content">
     <div class="home-card">
       <div class="home-icon">⚡</div>
       <div class="home-title">Filtering Game</div>
       <div class="home-subtitle">Scannez le QR code d'un produit en atelier pour commencer votre diagnostic.</div>
-      ${team}
+      ${teamInfo}
       <div class="home-links">
         <a class="btn-link btn-leaderboard" href="leaderboard.html">🏆 Voir le classement</a>
-        ${!currentTeam ? `<button class="btn-link btn-outline" onclick="showTeamSelect()">Sélectionner mon équipe</button>` : `<button class="btn-link btn-outline" onclick="changeTeam()">Changer d'équipe</button>`}
+        ${!currentTeam
+          ? `<button class="btn-link btn-outline" onclick="showTeamSelect()">Sélectionner mon équipe</button>`
+          : `<button class="btn-link btn-outline" onclick="changeTeam()">Changer d'équipe</button>`}
       </div>
     </div>
   </div>`);
 }
 
-function showTeamSelect() {
-  const grid = TEAMS.map(t =>
-    `<button class="team-btn" onclick="selectTeam('${t.id}','${t.name}')">${t.name}</button>`
-  ).join('');
+async function showTeamSelect() {
+  setApp(`${header(false)}
+  <div class="content">
+    <div class="loading"><div class="spinner"></div><p>Chargement des équipes...</p></div>
+  </div>`);
+
+  let registeredTeams = {};
+  if (db) {
+    try {
+      const snap = await db.ref('/teams').get();
+      if (snap.exists()) registeredTeams = snap.val();
+    } catch(e) {}
+  }
+
+  const grid = TEAMS.map(t => {
+    const reg = registeredTeams[t.id];
+    const displayName = reg ? reg.name : t.name;
+    const isTaken = !!reg;
+    const memberCount = reg?.members?.length || 0;
+    const statusText = isTaken
+      ? `<div style="font-size:11px;color:var(--gold);margin-top:4px">${memberCount > 0 ? memberCount + ' membre' + (memberCount > 1 ? 's' : '') : 'Inscrite'}</div>`
+      : `<div style="font-size:11px;color:#666;margin-top:4px">Disponible</div>`;
+    const safeName = displayName.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<button class="team-btn${isTaken ? ' taken' : ''}" onclick="showTeamForm('${t.id}','${safeName}')">
+      ${displayName}${statusText}
+    </button>`;
+  }).join('');
+
   setApp(`${header(false)}
   <div class="content">
     <div class="screen-title">👋 Qui êtes-vous ?</div>
-    <div class="screen-sub">Sélectionnez votre équipe pour commencer</div>
+    <div class="screen-sub">Choisissez un slot et créez votre équipe</div>
     <div class="teams-grid">${grid}</div>
   </div>`);
 }
 
-function selectTeam(id, name) {
-  currentTeam = {id, name};
+function showTeamForm(id, currentName) {
+  const defaultName = currentName || TEAMS.find(t => t.id === id)?.name || id;
+  setApp(`${header(false)}
+  <div class="content">
+    <div class="screen-title">✏️ Votre équipe</div>
+    <div class="screen-sub">Slot : <strong>${id}</strong></div>
+
+    <div class="form-group">
+      <label class="form-label" for="team-name-input">Nom de l'équipe</label>
+      <input class="text-input" id="team-name-input" type="text"
+             placeholder="${defaultName}" value="${defaultName}"
+             maxlength="30" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Membres de l'équipe</label>
+      <div class="members-list">
+        <input class="text-input" id="m1" type="text" placeholder="Membre 1 (obligatoire)" maxlength="40" />
+        <input class="text-input" id="m2" type="text" placeholder="Membre 2 (optionnel)" maxlength="40" />
+        <input class="text-input" id="m3" type="text" placeholder="Membre 3 (optionnel)" maxlength="40" />
+        <input class="text-input" id="m4" type="text" placeholder="Membre 4 (optionnel)" maxlength="40" />
+      </div>
+    </div>
+
+    <button class="btn-next" onclick="confirmTeam('${id}')">✅ Rejoindre</button>
+    <button class="btn-link btn-outline" style="margin-top:10px" onclick="showTeamSelect()">← Retour</button>
+  </div>`);
+
+  // Pre-fill if team already exists locally
+  const saved = localStorage.getItem('jf2026_team');
+  if (saved) {
+    try {
+      const t = JSON.parse(saved);
+      if (t.id === id && t.members) {
+        t.members.forEach((m, i) => {
+          const el = document.getElementById(`m${i+1}`);
+          if (el) el.value = m;
+        });
+      }
+    } catch(e) {}
+  }
+}
+
+async function confirmTeam(id) {
+  const nameInput = document.getElementById('team-name-input');
+  const defaultName = TEAMS.find(t => t.id === id)?.name || id;
+  const name = nameInput?.value?.trim() || defaultName;
+
+  const members = [];
+  for (let i = 1; i <= 4; i++) {
+    const val = document.getElementById(`m${i}`)?.value?.trim();
+    if (val) members.push(val);
+  }
+
+  if (members.length === 0) {
+    showToast('⚠️ Ajoutez au moins un membre');
+    return;
+  }
+
+  // Save team registration to Firebase
+  if (db) {
+    try {
+      await db.ref(`/teams/${id}`).set({
+        id, name, members, updatedAt: Date.now()
+      });
+    } catch(e) {
+      showToast('Attention : erreur de connexion, continuez quand même.');
+    }
+  }
+
+  selectTeam(id, name, members);
+}
+
+function selectTeam(id, name, members = []) {
+  currentTeam = {id, name, members};
   localStorage.setItem('jf2026_team', JSON.stringify(currentTeam));
-  showToast(`Équipe sélectionnée : ${name}`);
+  showToast(`✅ Équipe : ${name}`);
   if (pendingProduct) { const p = pendingProduct; pendingProduct = null; showProduct(p); }
   else showHome();
 }
@@ -404,8 +522,11 @@ async function submitAnswer(productId, answer) {
   if (db) {
     try {
       await db.ref(`/submissions/${prod.workshop}/${currentTeam.id}/${productId}`).set({
-        team: currentTeam.id, teamName: currentTeam.name,
-        product: productId, workshop: prod.workshop,
+        team: currentTeam.id,
+        teamName: currentTeam.name,
+        members: currentTeam.members || [],
+        product: productId,
+        workshop: prod.workshop,
         answer, correct: prod.correct, score,
         timestamp: Date.now()
       });

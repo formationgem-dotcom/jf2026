@@ -17,11 +17,12 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); color: var(--white); min-height: 100vh; }
 
-.header { background: var(--navy2); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 12px rgba(0,0,0,.4); position: sticky; top: 0; z-index: 10; }
+.header { background: var(--navy2); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 12px rgba(0,0,0,.4); position: sticky; top: 0; z-index: 10; }
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-logo { height: 40px; border-radius: 6px; object-fit: contain; }
 .header-title { font-size: 18px; font-weight: 800; color: var(--gold); }
 .header-subtitle { font-size: 12px; color: #aaa; margin-top: 2px; }
 .header-right { display: flex; gap: 10px; align-items: center; }
-.btn-refresh { background: var(--gold); color: var(--navy); border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; }
 .btn-admin { background: var(--navy); color: #aaa; border: 1px solid #444; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
 
 /* LIVE INDICATOR */
@@ -44,13 +45,14 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 .table-wrap { padding: 0 16px 32px; }
 .rank-table { width: 100%; border-collapse: collapse; }
 .rank-table th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #aaa; padding: 10px 12px; text-align: left; border-bottom: 1px solid #333; }
-.rank-table td { padding: 14px 12px; border-bottom: 1px solid #222; vertical-align: middle; }
+.rank-table td { padding: 12px 12px; border-bottom: 1px solid #222; vertical-align: middle; }
 .rank-table tr:last-child td { border-bottom: none; }
 .rank-table tr:hover td { background: rgba(255,255,255,.03); }
 
 .rank-num { font-size: 18px; font-weight: 900; color: #555; width: 36px; }
 .rank-num.top { color: var(--gold); }
-.team-name { font-size: 16px; font-weight: 700; }
+.team-name { font-size: 15px; font-weight: 700; }
+.team-members { font-size: 11px; color: #888; margin-top: 2px; font-style: italic; }
 .team-sub { font-size: 12px; color: #777; margin-top: 2px; }
 .score-asp { color: var(--blue2); font-weight: 700; font-size: 14px; }
 .score-caf { color: var(--coffee2); font-weight: 700; font-size: 14px; }
@@ -64,7 +66,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 /* ADMIN PANEL */
 .admin-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 50; align-items: center; justify-content: center; padding: 20px; }
 .admin-overlay.open { display: flex; }
-.admin-card { background: var(--navy2); border-radius: 16px; padding: 24px; width: 100%; max-width: 460px; max-height: 80vh; overflow-y: auto; }
+.admin-card { background: var(--navy2); border-radius: 16px; padding: 24px; width: 100%; max-width: 460px; max-height: 85vh; overflow-y: auto; }
 .admin-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
 .admin-sub { font-size: 13px; color: #aaa; margin-bottom: 20px; }
 .pin-row { display: flex; gap: 10px; margin-bottom: 20px; }
@@ -72,6 +74,8 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 .pin-btn { background: var(--gold); color: var(--navy); border: none; border-radius: 10px; padding: 12px 20px; font-weight: 800; font-size: 15px; cursor: pointer; }
 .admin-section { margin-bottom: 20px; }
 .admin-section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #aaa; margin-bottom: 10px; }
+.export-btn { background: #0e3a1a; color: #4caf50; border: 1px solid #4caf50; border-radius: 10px; padding: 12px 18px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; margin-bottom: 8px; }
+.export-btn:hover { background: #1a5a28; }
 .reset-btn { background: #3a0a0a; color: #ff6b6b; border: 1px solid #c00; border-radius: 10px; padding: 12px 18px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; }
 .reset-btn:hover { background: #500; }
 .close-btn { background: #333; color: var(--white); border: none; border-radius: 10px; padding: 12px; font-size: 14px; cursor: pointer; width: 100%; margin-top: 8px; }
@@ -93,9 +97,12 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 <body>
 
 <div class="header">
-  <div>
-    <div class="header-title">🏆 Classement JF2026</div>
-    <div class="header-subtitle">Temps réel — Filtering Game</div>
+  <div class="header-left">
+    <img src="Logo JF2026.jpg" alt="JF2026" class="header-logo" onerror="this.style.display='none'">
+    <div>
+      <div class="header-title">🏆 Classement JF2026</div>
+      <div class="header-subtitle">Temps réel — Filtering Game</div>
+    </div>
   </div>
   <div class="header-right">
     <button class="btn-admin" onclick="toggleAdmin()">⚙️ Admin</button>
@@ -135,7 +142,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 
 <script>
 /* ═══════════════════════════════════════════
-   MÊME CONFIG FIREBASE que index.html
+   CONFIG FIREBASE
 ═══════════════════════════════════════════ */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCZVWNDjMG8XzN1X5L8UwrFZ8ThMk56zO0",
@@ -155,14 +162,26 @@ const ASP_PRODUCTS=["ASP-01","ASP-02","ASP-03","ASP-04","ASP-05","ASP-06","ASP-0
 const CAF_PRODUCTS=["CAF-01","CAF-02","CAF-03","CAF-04","CAF-05","CAF-06","CAF-07","CAF-08","CAF-09","CAF-10","CAF-11","CAF-12","CAF-13","CAF-14","CAF-15"];
 
 let db, adminUnlocked = false;
+let currentSubmissions = {};
+let currentTeamsData = {};
 
 function init() {
   try {
     firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.database();
+
+    // Listen to submissions in real time
     db.ref('/submissions').on('value', snap => {
-      renderLeaderboard(snap.val() || {});
+      currentSubmissions = snap.val() || {};
+      renderLeaderboard(currentSubmissions, currentTeamsData);
     });
+
+    // Listen to team registrations in real time
+    db.ref('/teams').on('value', snap => {
+      currentTeamsData = snap.val() || {};
+      renderLeaderboard(currentSubmissions, currentTeamsData);
+    });
+
   } catch(e) {
     document.getElementById('main-content').innerHTML = `
       <div class="no-data">
@@ -173,10 +192,14 @@ function init() {
   }
 }
 
-function calculateScores(data) {
-  // data: {asp: {E01: {ASP-01: {score, answer,...}, ...}, ...}, caf: {...}}
+function calculateScores(data, teamsData) {
   const scores = {};
-  TEAMS_LIST.forEach(t => { scores[t.id] = {name:t.name, asp:0, caf:0, total:0, responses:0}; });
+  TEAMS_LIST.forEach(t => {
+    const fbTeam = teamsData[t.id];
+    const name = fbTeam?.name || t.name;
+    const members = fbTeam?.members || [];
+    scores[t.id] = {name, members, asp:0, caf:0, total:0, responses:0};
+  });
 
   function processWorkshop(workshop, products) {
     const ws = data[workshop] || {};
@@ -196,8 +219,8 @@ function calculateScores(data) {
   return scores;
 }
 
-function renderLeaderboard(data) {
-  const scores = calculateScores(data);
+function renderLeaderboard(data, teamsData) {
+  const scores = calculateScores(data, teamsData);
   const teams = Object.values(scores).sort((a,b) => b.total - a.total || b.asp - a.asp);
   const totalResponses = teams.reduce((s,t)=>s+t.responses,0);
   const activeTeams = teams.filter(t=>t.responses>0).length;
@@ -211,7 +234,7 @@ function renderLeaderboard(data) {
   // Podium (top 3)
   const medals = ['🥇','🥈','🥉'];
   const podiumClasses = ['p1','p2','p3'];
-  const podiumOrder = [1,0,2]; // silver, gold, bronze visual order
+  const podiumOrder = [1,0,2];
   let podiumHtml = '';
   podiumOrder.forEach(idx => {
     const t = teams[idx];
@@ -240,10 +263,14 @@ function renderLeaderboard(data) {
     const isTop = rank <= 3;
     const aspPct = Math.max(0, (t.asp / 27) * 100);
     const cafPct = Math.max(0, (t.caf / 27) * 100);
+    const membersHtml = t.members && t.members.length > 0
+      ? `<div class="team-members">${t.members.join(' · ')}</div>`
+      : '';
     tableHtml += `<tr>
       <td><div class="rank-num ${isTop?'top':''}">${rank}</div></td>
       <td>
         <div class="team-name">${t.name}</div>
+        ${membersHtml}
         <div class="team-sub">${t.responses} réponse${t.responses!==1?'s':''}</div>
         <div style="display:flex;gap:4px;margin-top:6px">
           <div style="flex:1"><div class="progress-bar"><div class="progress-fill fill-asp" style="width:${aspPct}%"></div></div></div>
@@ -284,34 +311,112 @@ function checkPin() {
 
 function showAdminPanel() {
   adminUnlocked = true;
+  const scores = calculateScores(currentSubmissions, currentTeamsData);
+  const teams = Object.values(scores).sort((a,b) => b.total - a.total);
+
   document.getElementById('admin-body').innerHTML = `
     <div class="admin-section">
-      <div class="admin-section-title">Noms des équipes</div>
-      ${TEAMS_LIST.map(t=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="color:#aaa;font-size:12px;width:36px">${t.id}</span>
-        <input style="flex:1;background:#1a1a2e;border:1px solid #444;border-radius:8px;padding:8px;color:#fff;font-size:14px"
-               id="name-${t.id}" value="${t.name}" placeholder="${t.name}" />
-      </div>`).join('')}
-      <button class="pin-btn" style="width:100%;margin-top:8px;background:var(--blue2)" onclick="saveTeamNames()">💾 Enregistrer les noms</button>
+      <div class="admin-section-title">📊 Export des résultats</div>
+      <button class="export-btn" onclick="exportCSV()">📥 Télécharger les résultats (CSV)</button>
+      <div style="font-size:11px;color:#666;margin-top:4px">Ouvrable dans Excel • Inclut toutes les réponses + noms des membres</div>
     </div>
+
+    <div class="admin-section">
+      <div class="admin-section-title">🏅 Classement actuel</div>
+      ${teams.slice(0,5).map((t,i) => `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px">
+          <span style="color:var(--gold);font-weight:900;width:20px">${i+1}.</span>
+          <span style="flex:1">
+            <strong>${t.name}</strong>
+            ${t.members?.length > 0 ? `<br><span style="color:#888;font-size:11px">${t.members.join(', ')}</span>` : ''}
+          </span>
+          <span style="color:var(--gold);font-weight:700">${t.total > 0 ? '+' : ''}${t.total} pts</span>
+        </div>`).join('')}
+    </div>
+
     <div class="admin-section">
       <div class="admin-section-title">Danger zone</div>
       <button class="reset-btn" onclick="resetScores()">🗑️ Remettre tous les scores à zéro</button>
     </div>`;
-
-  // Load saved names
-  TEAMS_LIST.forEach(t => {
-    const saved = localStorage.getItem(`jf2026_teamname_${t.id}`);
-    if (saved) document.getElementById(`name-${t.id}`).value = saved;
-  });
 }
 
-function saveTeamNames() {
-  TEAMS_LIST.forEach(t => {
-    const input = document.getElementById(`name-${t.id}`);
-    if (input) localStorage.setItem(`jf2026_teamname_${t.id}`, input.value);
-  });
-  alert('Noms enregistrés ! (Note : les noms ne sont sauvegardés que localement sur cet appareil)');
+async function exportCSV() {
+  if (!db) { alert('Firebase non connecté.'); return; }
+
+  try {
+    const snap = await db.ref('/').get();
+    const data = snap.val() || {};
+    const submissions = data.submissions || {};
+    const teamsData = data.teams || {};
+
+    // Header row
+    const rows = [[
+      'Rang', 'Équipe ID', 'Nom équipe', 'Membres',
+      'Atelier', 'Produit', 'Réponse donnée', 'Bonne réponse',
+      'Correct ?', 'Points', 'Date/Heure'
+    ]];
+
+    // Compute rankings
+    const scores = calculateScores(submissions, teamsData);
+    const ranked = Object.entries(scores)
+      .sort(([,a],[,b]) => b.total - a.total)
+      .reduce((acc, [id], i) => { acc[id] = i + 1; return acc; }, {});
+
+    ['asp', 'caf'].forEach(workshop => {
+      const ws = submissions[workshop] || {};
+      Object.keys(ws).forEach(teamId => {
+        const teamData = teamsData[teamId] || {};
+        const teamName = teamData.name || scores[teamId]?.name || teamId;
+        const members = (teamData.members || []).join(', ');
+        const rang = ranked[teamId] || '-';
+
+        Object.values(ws[teamId]).forEach(sub => {
+          const isCorrect = sub.score > 0 ? 'Oui' : 'Non';
+          const dateStr = sub.timestamp
+            ? new Date(sub.timestamp).toLocaleString('fr-FR')
+            : '';
+          rows.push([
+            rang, teamId, teamName, members,
+            workshop === 'asp' ? 'Aspiration' : 'Broyeurs Café',
+            sub.product || '',
+            sub.answer || '', sub.correct || '',
+            isCorrect, sub.score || 0,
+            dateStr
+          ]);
+        });
+      });
+    });
+
+    // Sort by team rank, then product
+    rows.sort((a, b) => {
+      if (a === rows[0]) return -1; // keep header first
+      return (a[0] - b[0]) || String(a[5]).localeCompare(String(b[5]));
+    });
+
+    // Generate CSV with BOM for Excel UTF-8
+    const csv = rows.map(r =>
+      r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')
+    ).join('\n');
+
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const now = new Date();
+    const dateTag = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    a.href = url;
+    a.download = `resultats-jf2026-${dateTag}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    // Feedback
+    const btn = document.querySelector('.export-btn');
+    if (btn) { btn.textContent = '✅ Téléchargement lancé !'; setTimeout(() => { btn.textContent = '📥 Télécharger les résultats (CSV)'; }, 3000); }
+
+  } catch(e) {
+    alert('Erreur lors de l\'export : ' + e.message);
+  }
 }
 
 async function resetScores() {
@@ -319,7 +424,8 @@ async function resetScores() {
   if (!db) return;
   try {
     await db.ref('/submissions').remove();
-    alert('Scores remis à zéro.');
+    await db.ref('/teams').remove();
+    alert('Scores et équipes remis à zéro.');
     toggleAdmin();
   } catch(e) { alert('Erreur : ' + e.message); }
 }
