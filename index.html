@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Filtering Game — JF2026</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+<style>
+:root {
+  --navy: #1A1A2E; --navy2: #2E2E5E;
+  --blue: #1F4E79; --blue2: #2E75B6; --blue-l: #DEEAF1;
+  --coffee: #5C3317; --coffee2: #8B6914; --coffee-l: #FDF0D5;
+  --green: #375623; --green-l: #D5F0C3;
+  --red: #C00000; --red-l: #FFD7D7;
+  --gold: #C9A227; --white: #FFFFFF; --gray: #F2F2F2; --text: #222;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); color: var(--white); min-height: 100vh; }
+#app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* HEADER */
+.header { background: var(--navy2); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,.3); position: sticky; top: 0; z-index: 10; }
+.header-title { font-size: 15px; font-weight: 700; letter-spacing: .5px; }
+.header-team { font-size: 12px; background: var(--gold); color: var(--navy); padding: 4px 10px; border-radius: 20px; font-weight: 700; cursor: pointer; }
+.header-team:hover { opacity: .85; }
+
+/* CONTENT */
+.content { flex: 1; padding: 20px 16px 32px; }
+
+/* HOME */
+.home-card { text-align: center; padding: 40px 24px; }
+.home-icon { font-size: 64px; margin-bottom: 16px; }
+.home-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: var(--gold); }
+.home-subtitle { font-size: 14px; color: #aaa; line-height: 1.5; }
+.home-links { margin-top: 32px; display: flex; flex-direction: column; gap: 12px; }
+.btn-link { display: block; padding: 14px; border-radius: 12px; text-align: center; font-size: 14px; font-weight: 600; cursor: pointer; border: none; text-decoration: none; }
+.btn-leaderboard { background: var(--gold); color: var(--navy); }
+.btn-outline { background: transparent; color: var(--white); border: 2px solid var(--navy2); }
+
+/* TEAM SELECT */
+.screen-title { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+.screen-sub { font-size: 13px; color: #aaa; margin-bottom: 24px; }
+.teams-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.team-btn { background: var(--navy2); border: 2px solid transparent; border-radius: 14px; padding: 18px 12px; text-align: center; cursor: pointer; transition: all .15s; font-size: 15px; font-weight: 700; color: var(--white); }
+.team-btn:hover, .team-btn:active { border-color: var(--gold); background: #3a3a6a; transform: scale(.97); }
+
+/* PRODUCT CARD */
+.workshop-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: .5px; margin-bottom: 16px; }
+.badge-asp { background: var(--blue); color: var(--white); }
+.badge-caf { background: var(--coffee); color: var(--white); }
+
+.product-ref { font-size: 32px; font-weight: 900; margin-bottom: 2px; }
+.product-ref.asp { color: var(--blue2); }
+.product-ref.caf { color: var(--coffee2); }
+.product-type { font-size: 14px; color: #aaa; margin-bottom: 24px; font-style: italic; }
+
+.symptom-card { background: var(--navy2); border-radius: 14px; padding: 18px; margin-bottom: 24px; border-left: 4px solid var(--blue2); }
+.symptom-card.caf { border-left-color: var(--coffee2); }
+.symptom-label { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.symptom-text { font-size: 16px; line-height: 1.6; color: var(--white); font-style: italic; }
+
+.answer-buttons { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+.answer-btn { padding: 20px 16px; border-radius: 16px; border: 2px solid transparent; font-size: 16px; font-weight: 700; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 14px; transition: all .15s; color: var(--white); }
+.answer-btn .icon { font-size: 28px; flex-shrink: 0; }
+.answer-btn .label { flex: 1; }
+.answer-btn .label-main { display: block; font-size: 16px; font-weight: 700; }
+.answer-btn .label-sub { display: block; font-size: 12px; font-weight: 400; color: rgba(255,255,255,.7); margin-top: 2px; }
+.btn-filtering { background: #1e3a1e; border-color: var(--green); }
+.btn-filtering:hover, .btn-filtering:active { background: #2a502a; transform: scale(.98); }
+.btn-reparation { background: #3a1f0e; border-color: var(--coffee2); }
+.btn-reparation:hover, .btn-reparation:active { background: #4a2a14; transform: scale(.98); }
+
+.already-answered { background: var(--navy2); border-radius: 12px; padding: 14px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #ccc; }
+.already-answered .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-green { background: #4caf50; }
+.dot-red { background: var(--red); }
+.dot-yellow { background: var(--gold); }
+
+/* RESULT */
+.result-card { text-align: center; padding: 32px 20px; }
+.result-icon { font-size: 72px; margin-bottom: 16px; }
+.result-title { font-size: 26px; font-weight: 900; margin-bottom: 8px; }
+.result-title.correct { color: #4caf50; }
+.result-title.wrong { color: var(--red); }
+.result-score { font-size: 40px; font-weight: 900; margin-bottom: 24px; }
+.score-pos { color: #4caf50; }
+.score-neg { color: var(--red); }
+.result-explanation { background: var(--navy2); border-radius: 14px; padding: 18px; margin-bottom: 28px; text-align: left; }
+.expl-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #aaa; margin-bottom: 8px; }
+.expl-text { font-size: 14px; line-height: 1.6; color: var(--white); }
+.btn-next { background: var(--gold); color: var(--navy); border: none; border-radius: 14px; padding: 18px; font-size: 16px; font-weight: 800; cursor: pointer; width: 100%; }
+.btn-next:hover { opacity: .9; }
+
+/* LOADING */
+.loading { text-align: center; padding: 60px 20px; }
+.spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,.2); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* TOAST */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: var(--white); padding: 12px 20px; border-radius: 10px; font-size: 14px; z-index: 100; opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; }
+
+@media (prefers-color-scheme: light) {
+  body { background: #f0f4f8; }
+  #app { background: #f0f4f8; }
+  .header { background: var(--navy); }
+  .team-btn { color: var(--navy); background: var(--white); border-color: #ddd; }
+  .team-btn:hover { background: var(--blue-l); border-color: var(--blue2); }
+  .symptom-card { background: var(--white); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .symptom-text { color: var(--navy); }
+  .already-answered { background: var(--white); color: var(--text); }
+  .result-explanation { background: var(--white); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .expl-text { color: var(--text); }
+  .screen-sub { color: #666; }
+  .product-type { color: #666; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="loading"><div class="spinner"></div><p>Chargement...</p></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════
+   CONFIGURATION FIREBASE
+   Remplacez les valeurs ci-dessous par celles
+   de votre projet Firebase
+═══════════════════════════════════════════ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCZVWNDjMG8XzN1X5L8UwrFZ8ThMk56zO0",
+  authDomain: "jf2026-filtering.firebaseapp.com",
+  databaseURL: "https://jf2026-filtering-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "jf2026-filtering",
+  storageBucket: "jf2026-filtering.firebasestorage.app",
+  messagingSenderId: "505979371071",
+  appId: "1:505979371071:web:428fe599f2966e5997c28a"
+};
+
+/* ═══════════════════════════════════════════
+   DONNÉES — ÉQUIPES
+═══════════════════════════════════════════ */
+const TEAMS = Array.from({length: 10}, (_, i) => ({
+  id: `E${String(i+1).padStart(2,'0')}`,
+  name: `Équipe ${i+1}`
+}));
+
+/* ═══════════════════════════════════════════
+   DONNÉES — PRODUITS (30 scénarios)
+═══════════════════════════════════════════ */
+const F = "Filtering", R = "Réparation";
+const PRODUCTS = {
+  "ASP-01":{workshop:"asp",type:"Aspirateur traîneau",
+    symptom:"Depuis quelques semaines, mon aspirateur n'aspire presque plus rien. Il fait du bruit mais ne ramasse plus.",
+    correct:F,points:2,explanation:"Filtre encrassé ou plein — nettoyer ou remplacer le filtre résout le problème immédiatement."},
+  "ASP-02":{workshop:"asp",type:"Aspirateur traîneau",
+    symptom:"Mon sac se remplit extrêmement vite après seulement une utilisation ! Il y a forcément un problème.",
+    correct:F,points:2,explanation:"Sac saturé — le sac doit simplement être remplacé. L'aspirateur fonctionne normalement."},
+  "ASP-03":{workshop:"asp",type:"Aspirateur traîneau",
+    symptom:"Une odeur de brûlé se dégage de l'appareil lorsqu'il fonctionne.",
+    correct:R,points:1,explanation:"Odeur de brûlé = moteur défaillant. Envoi en atelier de réparation obligatoire."},
+  "ASP-04":{workshop:"asp",type:"Aspirateur traîneau",
+    symptom:"Rien ne passe dans le tuyau. J'entends le moteur mais il n'y a aucune aspiration.",
+    correct:F,points:2,explanation:"Corps étranger dans le tuyau — démontage et nettoyage du tuyau. Pas de panne."},
+  "ASP-05":{workshop:"asp",type:"Balai aspirateur",
+    symptom:"Ma batterie tient moins de 5 minutes maintenant. Avant j'avais 30 minutes d'autonomie.",
+    correct:R,points:1,explanation:"Batterie en fin de vie — remplacement de la batterie nécessaire. Envoi en atelier."},
+  "ASP-06":{workshop:"asp",type:"Balai aspirateur",
+    symptom:"Mon balai ne démarre plus depuis ce matin. Pourtant j'ai essayé de le recharger hier soir.",
+    correct:F,points:2,explanation:"Chargeur mal branché ou absence de charge — vérifier le chargement complet avant diagnostic."},
+  "ASP-07":{workshop:"asp",type:"Balai aspirateur",
+    symptom:"La brosse motorisée ne tourne plus du tout. Mon balai aspire à peine.",
+    correct:F,points:2,explanation:"Brosse obstruée par cheveux ou fils — nettoyer la brosse. Résolu en magasin."},
+  "ASP-08":{workshop:"asp",type:"Balai aspirateur",
+    symptom:"Quand je l'allume, il vibre énormément et fait un bruit que je n'avais jamais entendu.",
+    correct:R,points:1,explanation:"Vibrations fortes = roulement ou brosse défaillant. Envoi en atelier nécessaire."},
+  "ASP-09":{workshop:"asp",type:"Balai laveur",
+    symptom:"Mon balai laveur laisse des traces blanches partout sur mon parquet après chaque passage.",
+    correct:F,points:2,explanation:"Mauvais dosage de produit nettoyant — ajustement du dosage, rinçage du réservoir."},
+  "ASP-10":{workshop:"asp",type:"Balai laveur",
+    symptom:"De l'eau s'écoule par le bas au niveau du réservoir pendant que je lave.",
+    correct:R,points:1,explanation:"Joint du réservoir défaillant — envoi en atelier de réparation."},
+  "ASP-11":{workshop:"asp",type:"Balai laveur",
+    symptom:"La brosse de lavage s'est arrêtée de tourner. Elle ne nettoie plus rien.",
+    correct:F,points:2,explanation:"Tampon saturé ou coincé — nettoyage ou remplacement du tampon. Résolu en magasin."},
+  "ASP-12":{workshop:"asp",type:"Robot aspirateur",
+    symptom:"Mon robot tourne en rond et s'arrête au bout de 2 minutes. Il ne fait plus le tour de la pièce.",
+    correct:F,points:2,explanation:"Capteurs anti-chute sales — nettoyer les capteurs sous le robot. Problème résolu."},
+  "ASP-13":{workshop:"asp",type:"Robot aspirateur",
+    symptom:"Mon robot ne retourne plus à sa base depuis hier. Il reste bloqué au milieu de la pièce.",
+    correct:F,points:2,explanation:"Contacts de station oxydés ou station mal placée — nettoyage et repositionnement."},
+  "ASP-14":{workshop:"asp",type:"Robot laveur",
+    symptom:"Mon robot laveur laisse des traînées humides partout. Le sol est encore sale après son passage.",
+    correct:F,points:2,explanation:"Serpillière saturée ou non rincée — laver et rincer la serpillière. Pas de panne."},
+  "ASP-15":{workshop:"asp",type:"Robot aspirateur",
+    symptom:"Mon robot aspire de moins en moins bien depuis 2 mois. Il n'aspire presque plus rien.",
+    correct:F,points:2,explanation:"Filtre HEPA bouché et bac plein — nettoyer le filtre et vider le bac. Résolu en magasin."},
+
+  "CAF-01":{workshop:"caf",type:"Moulin à café",
+    symptom:"Mon moulin ne démarre pas du tout. Pourtant il est bien branché sur la prise.",
+    correct:F,points:2,explanation:"Bac non verrouillé — la sécurité empêche le démarrage. Verrouiller le bac, problème résolu."},
+  "CAF-02":{workshop:"caf",type:"Moulin à café",
+    symptom:"Mon café est beaucoup trop grossier. On dirait du café pour cafetière filtre.",
+    correct:F,points:2,explanation:"Réglage de mouture trop grossier — ajuster le niveau de mouture. Pas de panne."},
+  "CAF-03":{workshop:"caf",type:"Moulin à café",
+    symptom:"Il y a de la poudre de café partout autour de l'appareil après chaque utilisation.",
+    correct:F,points:2,explanation:"Électricité statique (phénomène normal) — explication au client, pas de défaut produit."},
+  "CAF-04":{workshop:"caf",type:"Cafetière à grain",
+    symptom:"Mon café a un goût amer et comme brûlé. Ce n'est pas du tout agréable à boire.",
+    correct:F,points:2,explanation:"Détartrage nécessaire + mouture trop fine — entretien et réglage. Résolu en magasin."},
+  "CAF-05":{workshop:"caf",type:"Moulin à café",
+    symptom:"Mon moulin s'arrête tout seul en pleine mouture. Je dois attendre avant de recommencer.",
+    correct:F,points:2,explanation:"Protection thermique activée (utilisation continue excessive) — laisser refroidir avant de recommencer."},
+  "CAF-06":{workshop:"caf",type:"Moulin à café",
+    symptom:"J'entends un bruit de craquement anormal depuis que j'ai acheté un nouveau paquet de café.",
+    correct:F,points:2,explanation:"Corps étranger (caillou, bois) dans les grains — vider et inspecter la trémie."},
+  "CAF-07":{workshop:"caf",type:"Moulin à café",
+    symptom:"Le café ne sort plus du tout. Il y a un bruit bizarre et la lame ne semble plus tourner.",
+    correct:R,points:1,explanation:"Lame fissurée ou cassée — envoi en atelier de réparation obligatoire."},
+  "CAF-08":{workshop:"caf",type:"Cafetière à grain",
+    symptom:"Plus rien ne coule de ma cafetière depuis ce matin. Le voyant est allumé normalement.",
+    correct:F,points:2,explanation:"Passage d'eau bouché par le calcaire — détartrage de la cafetière. Résolu en magasin."},
+  "CAF-09":{workshop:"caf",type:"Cafetière à grain",
+    symptom:"De l'eau s'écoule par le dessous de ma cafetière quand elle chauffe.",
+    correct:R,points:1,explanation:"Joint de résistance défaillant — envoi en atelier de réparation."},
+  "CAF-10":{workshop:"caf",type:"Moulin à café",
+    symptom:"La mouture est très irrégulière : moitié poudre très fine, moitié grains entiers.",
+    correct:R,points:1,explanation:"Meules usées — remplacement des meules nécessaire. Envoi en atelier."},
+  "CAF-11":{workshop:"caf",type:"Cafetière à grain",
+    symptom:"Mon café est trop léger et peu concentré. Pourtant je mets autant de grains qu'avant.",
+    correct:F,points:2,explanation:"Dosage insuffisant ou mouture inadaptée — ajustement du dosage et de la mouture."},
+  "CAF-12":{workshop:"caf",type:"Cafetière à grain",
+    symptom:"Le voyant d'erreur s'allume tout de suite au démarrage. Je ne comprends pas pourquoi.",
+    correct:F,points:2,explanation:"Réservoir d'eau mal positionné — repositionner correctement le réservoir. Pas de panne."},
+  "CAF-13":{workshop:"caf",type:"Moulin à café",
+    symptom:"Après la mouture, il reste des grains entiers dans la trémie. Ils ne sont pas broyés.",
+    correct:F,points:2,explanation:"Surcharge de grains dans la trémie — réduire la quantité de grains à moudre."},
+  "CAF-14":{workshop:"caf",type:"Cafetière à grain",
+    symptom:"Mon café n'a plus aucun arôme depuis quelques jours. Il est complètement insipide.",
+    correct:F,points:2,explanation:"Grains trop vieux ou mal conservés — conseiller le client sur la fraîcheur et la conservation."},
+  "CAF-15":{workshop:"caf",type:"Moulin à café",
+    symptom:"Il y a un dépôt de poudre de café sur toutes les surfaces autour de l'appareil.",
+    correct:F,points:2,explanation:"Résidu de café et électricité statique — nettoyage et explication au client. Phénomène normal."},
+};
+
+/* ═══════════════════════════════════════════
+   APP
+═══════════════════════════════════════════ */
+let db, currentTeam = null, pendingProduct = null;
+
+function init() {
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+  } catch(e) {
+    // Firebase not configured yet — show demo mode
+    db = null;
+  }
+  const saved = localStorage.getItem('jf2026_team');
+  if (saved) try { currentTeam = JSON.parse(saved); } catch(e) {}
+  const params = new URLSearchParams(window.location.search);
+  const p = params.get('p');
+  route(p);
+}
+
+function route(productId) {
+  if (productId && PRODUCTS[productId]) {
+    if (!currentTeam) { pendingProduct = productId; showTeamSelect(); }
+    else showProduct(productId);
+  } else {
+    if (!currentTeam) showHome();
+    else showHome();
+  }
+}
+
+/* ---- RENDER HELPERS ---- */
+function setApp(html) { document.getElementById('app').innerHTML = html; }
+
+function header(showTeam = true) {
+  const team = currentTeam ? `<span class="header-team" onclick="changeTeam()">${currentTeam.name}</span>` : '';
+  return `<div class="header">
+    <span class="header-title">⚡ Filtering Game JF2026</span>
+    ${showTeam ? team : ''}
+  </div>`;
+}
+
+function showToast(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+/* ---- SCREENS ---- */
+function showHome() {
+  const team = currentTeam ? `<p style="color:var(--gold);font-weight:700;margin-top:12px">Connecté : ${currentTeam.name}</p>` : '';
+  setApp(`${header()}
+  <div class="content">
+    <div class="home-card">
+      <div class="home-icon">⚡</div>
+      <div class="home-title">Filtering Game</div>
+      <div class="home-subtitle">Scannez le QR code d'un produit en atelier pour commencer votre diagnostic.</div>
+      ${team}
+      <div class="home-links">
+        <a class="btn-link btn-leaderboard" href="leaderboard.html">🏆 Voir le classement</a>
+        ${!currentTeam ? `<button class="btn-link btn-outline" onclick="showTeamSelect()">Sélectionner mon équipe</button>` : `<button class="btn-link btn-outline" onclick="changeTeam()">Changer d'équipe</button>`}
+      </div>
+    </div>
+  </div>`);
+}
+
+function showTeamSelect() {
+  const grid = TEAMS.map(t =>
+    `<button class="team-btn" onclick="selectTeam('${t.id}','${t.name}')">${t.name}</button>`
+  ).join('');
+  setApp(`${header(false)}
+  <div class="content">
+    <div class="screen-title">👋 Qui êtes-vous ?</div>
+    <div class="screen-sub">Sélectionnez votre équipe pour commencer</div>
+    <div class="teams-grid">${grid}</div>
+  </div>`);
+}
+
+function selectTeam(id, name) {
+  currentTeam = {id, name};
+  localStorage.setItem('jf2026_team', JSON.stringify(currentTeam));
+  showToast(`Équipe sélectionnée : ${name}`);
+  if (pendingProduct) { const p = pendingProduct; pendingProduct = null; showProduct(p); }
+  else showHome();
+}
+
+function changeTeam() {
+  currentTeam = null; pendingProduct = null;
+  localStorage.removeItem('jf2026_team');
+  showTeamSelect();
+}
+
+async function showProduct(productId) {
+  const prod = PRODUCTS[productId];
+  if (!prod) { showHome(); return; }
+  const isAsp = prod.workshop === 'asp';
+  const themeClass = isAsp ? 'asp' : 'caf';
+  const badgeClass = isAsp ? 'badge-asp' : 'badge-caf';
+  const workshopName = isAsp ? '🌪️ Aspiration' : '☕ Broyeurs Café';
+
+  // Check previous answer
+  let prevHtml = '';
+  if (db && currentTeam) {
+    try {
+      const snap = await db.ref(`/submissions/${prod.workshop}/${currentTeam.id}/${productId}`).get();
+      if (snap.exists()) {
+        const prev = snap.val();
+        const isCorrect = prev.score > 0;
+        const isWrong = prev.score < 0;
+        const dotClass = isCorrect ? 'dot-green' : (isWrong ? 'dot-red' : 'dot-yellow');
+        const pts = prev.score > 0 ? `+${prev.score}` : `${prev.score}`;
+        prevHtml = `<div class="already-answered">
+          <div class="dot ${dotClass}"></div>
+          <span>Déjà soumis : <strong>${prev.answer}</strong> (${pts} pt${Math.abs(prev.score)>1?'s':''})</span>
+        </div>`;
+      }
+    } catch(e) {}
+  }
+
+  setApp(`${header()}
+  <div class="content">
+    <div>
+      <span class="workshop-badge ${badgeClass}">${workshopName}</span>
+    </div>
+    <div class="product-ref ${themeClass}">${productId}</div>
+    <div class="product-type">${prod.type}</div>
+    <div class="symptom-card ${themeClass}">
+      <div class="symptom-label">📢 Ce que dit le client</div>
+      <div class="symptom-text">« ${prod.symptom} »</div>
+    </div>
+    ${prevHtml}
+    <div class="answer-buttons">
+      <button class="answer-btn btn-filtering" onclick="submitAnswer('${productId}','${F}')">
+        <span class="icon">✅</span>
+        <span class="label">
+          <span class="label-main">Filtering</span>
+          <span class="label-sub">Résoudre en magasin</span>
+        </span>
+      </button>
+      <button class="answer-btn btn-reparation" onclick="submitAnswer('${productId}','${R}')">
+        <span class="icon">🔧</span>
+        <span class="label">
+          <span class="label-main">Réparation</span>
+          <span class="label-sub">Envoyer en atelier</span>
+        </span>
+      </button>
+    </div>
+  </div>`);
+}
+
+async function submitAnswer(productId, answer) {
+  if (!currentTeam) { showTeamSelect(); return; }
+  const prod = PRODUCTS[productId];
+  const isCorrect = answer === prod.correct;
+  const score = isCorrect ? prod.points : -1;
+
+  // Save to Firebase
+  if (db) {
+    try {
+      await db.ref(`/submissions/${prod.workshop}/${currentTeam.id}/${productId}`).set({
+        team: currentTeam.id, teamName: currentTeam.name,
+        product: productId, workshop: prod.workshop,
+        answer, correct: prod.correct, score,
+        timestamp: Date.now()
+      });
+    } catch(e) { showToast('Erreur de connexion. Vérifiez le Wi-Fi.'); }
+  }
+
+  showResult(prod, answer, score);
+}
+
+function showResult(prod, answer, score) {
+  const isCorrect = score > 0;
+  const icon = isCorrect ? '✅' : '❌';
+  const titleClass = isCorrect ? 'correct' : 'wrong';
+  const title = isCorrect ? 'Bonne réponse !' : 'Erreur de diagnostic';
+  const scoreClass = score > 0 ? 'score-pos' : 'score-neg';
+  const scoreStr = score > 0 ? `+${score}` : `${score}`;
+  const pts = Math.abs(score) > 1 ? 'pts' : 'pt';
+
+  setApp(`${header()}
+  <div class="content">
+    <div class="result-card">
+      <div class="result-icon">${icon}</div>
+      <div class="result-title ${titleClass}">${title}</div>
+      <div class="result-score ${scoreClass}">${scoreStr} ${pts}</div>
+      <div class="result-explanation">
+        <div class="expl-label">🔍 Explication</div>
+        <div class="expl-text">${prod.explanation}</div>
+      </div>
+      ${!isCorrect ? `<div class="result-explanation" style="margin-bottom:16px">
+        <div class="expl-label">✅ Bonne réponse attendue</div>
+        <div class="expl-text"><strong>${prod.correct}</strong></div>
+      </div>` : ''}
+      <button class="btn-next" onclick="showHome()">← Retour à l'accueil</button>
+    </div>
+  </div>`);
+}
+
+init();
+</script>
+</body>
+</html>
