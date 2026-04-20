@@ -11,6 +11,7 @@
   --navy: #1A1A2E; --navy2: #2E2E5E;
   --blue: #1F4E79; --blue2: #2E75B6; --blue-l: #DEEAF1;
   --coffee: #5C3317; --coffee2: #8B6914; --coffee-l: #FDF0D5;
+  --mul: #4B2A82; --mul2: #8A4FC7; --mul-l: #EADDF7;
   --green: #375623; --green-l: #D5F0C3;
   --gold: #C9A227; --white: #FFFFFF; --gray: #F2F2F2; --text: #222;
 }
@@ -42,10 +43,10 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 .podium-score { font-size: 18px; font-weight: 900; color: var(--navy); }
 
 /* TABLE */
-.table-wrap { padding: 0 16px 32px; }
-.rank-table { width: 100%; border-collapse: collapse; }
-.rank-table th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #aaa; padding: 10px 12px; text-align: left; border-bottom: 1px solid #333; }
-.rank-table td { padding: 12px 12px; border-bottom: 1px solid #222; vertical-align: middle; }
+.table-wrap { padding: 0 16px 32px; overflow-x: auto; }
+.rank-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+.rank-table th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #aaa; padding: 10px 8px; text-align: left; border-bottom: 1px solid #333; white-space: nowrap; }
+.rank-table td { padding: 12px 8px; border-bottom: 1px solid #222; vertical-align: middle; }
 .rank-table tr:last-child td { border-bottom: none; }
 .rank-table tr:hover td { background: rgba(255,255,255,.03); }
 
@@ -56,12 +57,15 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 .team-sub { font-size: 12px; color: #777; margin-top: 2px; }
 .score-asp { color: var(--blue2); font-weight: 700; font-size: 14px; }
 .score-caf { color: var(--coffee2); font-weight: 700; font-size: 14px; }
+.score-mul { color: var(--mul2); font-weight: 700; font-size: 14px; }
+.score-serial { color: var(--gold); font-weight: 700; font-size: 14px; }
 .score-total { font-size: 22px; font-weight: 900; color: var(--white); text-align: right; }
 .score-total.leader { color: var(--gold); }
 .progress-bar { background: #333; border-radius: 4px; height: 4px; margin-top: 4px; overflow: hidden; }
 .progress-fill { height: 100%; border-radius: 4px; transition: width .5s ease; }
 .fill-asp { background: var(--blue2); }
 .fill-caf { background: var(--coffee2); }
+.fill-mul { background: var(--mul2); }
 
 /* ADMIN PANEL */
 .admin-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 50; align-items: center; justify-content: center; padding: 20px; }
@@ -155,11 +159,14 @@ const FIREBASE_CONFIG = {
 };
 
 const ADMIN_PIN = "2026";
-const MAX_SCORE = 27 * 2; // 54 pts max total
+/* Max theoretical : diag 2*15 par atelier = 30 × 3 + série 1*45 = 135 pts */
+const MAX_DIAG_PER_WORKSHOP = 30;
+const MAX_SERIAL_TOTAL = 45;
 
 const TEAMS_LIST = Array.from({length:10},(_,i)=>({id:`E${String(i+1).padStart(2,'0')}`,name:`Équipe ${i+1}`}));
-const ASP_PRODUCTS=["ASP-01","ASP-02","ASP-03","ASP-04","ASP-05","ASP-06","ASP-07","ASP-08","ASP-09","ASP-10","ASP-11","ASP-12","ASP-13","ASP-14","ASP-15"];
-const CAF_PRODUCTS=["CAF-01","CAF-02","CAF-03","CAF-04","CAF-05","CAF-06","CAF-07","CAF-08","CAF-09","CAF-10","CAF-11","CAF-12","CAF-13","CAF-14","CAF-15"];
+const ASP_PRODUCTS = Array.from({length:15},(_,i)=>`ASP-${String(i+1).padStart(2,'0')}`);
+const CAF_PRODUCTS = Array.from({length:15},(_,i)=>`CAF-${String(i+1).padStart(2,'0')}`);
+const MUL_PRODUCTS = Array.from({length:15},(_,i)=>`MUL-${String(i+1).padStart(2,'0')}`);
 
 let db, adminUnlocked = false;
 let currentSubmissions = {};
@@ -192,14 +199,28 @@ function init() {
   }
 }
 
+/**
+ * Calcule les scores par équipe avec ventilation :
+ *  - asp / caf / mul : score DIAGNOSTIC uniquement (Filtering / Réparation)
+ *  - serialBonus     : bonus global N° de série (somme des serialScore tous ateliers)
+ *  - total           : somme des 4
+ */
 function calculateScores(data, teamsData) {
   const scores = {};
   TEAMS_LIST.forEach(t => {
     const fbTeam = teamsData[t.id];
     const name = fbTeam?.name || t.name;
     const members = fbTeam?.members || [];
-    scores[t.id] = {name, members, asp:0, caf:0, total:0, responses:0};
+    scores[t.id] = {name, members, asp:0, caf:0, mul:0, serialBonus:0, total:0, responses:0};
   });
+
+  function extractScores(sub) {
+    // Rétro-compatibilité : si diagScore/serialScore absents, on reconstruit depuis "score".
+    if (sub.diagScore !== undefined || sub.serialScore !== undefined) {
+      return { diag: sub.diagScore || 0, serial: sub.serialScore || 0 };
+    }
+    return { diag: sub.score || 0, serial: 0 };
+  }
 
   function processWorkshop(workshop, products) {
     const ws = data[workshop] || {};
@@ -207,7 +228,9 @@ function calculateScores(data, teamsData) {
       Object.keys(ws).forEach(teamId => {
         const sub = ws[teamId][prodId];
         if (sub && scores[teamId] !== undefined) {
-          scores[teamId][workshop] += sub.score || 0;
+          const { diag, serial } = extractScores(sub);
+          scores[teamId][workshop] += diag;
+          scores[teamId].serialBonus += serial;
           scores[teamId].responses += 1;
         }
       });
@@ -215,20 +238,24 @@ function calculateScores(data, teamsData) {
   }
   processWorkshop('asp', ASP_PRODUCTS);
   processWorkshop('caf', CAF_PRODUCTS);
-  Object.keys(scores).forEach(id => { scores[id].total = scores[id].asp + scores[id].caf; });
+  processWorkshop('mul', MUL_PRODUCTS);
+  Object.keys(scores).forEach(id => {
+    const s = scores[id];
+    s.total = s.asp + s.caf + s.mul + s.serialBonus;
+  });
   return scores;
 }
 
 function renderLeaderboard(data, teamsData) {
   const scores = calculateScores(data, teamsData);
-  const teams = Object.values(scores).sort((a,b) => b.total - a.total || b.asp - a.asp);
+  const teams = Object.values(scores).sort((a,b) => b.total - a.total || b.serialBonus - a.serialBonus);
   const totalResponses = teams.reduce((s,t)=>s+t.responses,0);
   const activeTeams = teams.filter(t=>t.responses>0).length;
   const maxScore = teams[0]?.total || 0;
 
   document.getElementById('stat-reponses').textContent = totalResponses;
   document.getElementById('stat-equipes').textContent = activeTeams;
-  document.getElementById('stat-max').textContent = maxScore > 0 ? `+${maxScore}` : '0';
+  document.getElementById('stat-max').textContent = maxScore > 0 ? `+${maxScore}` : (maxScore < 0 ? maxScore : '0');
   document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR');
 
   // Podium (top 3)
@@ -255,17 +282,21 @@ function renderLeaderboard(data, teamsData) {
       <th>#</th><th>Équipe</th>
       <th style="text-align:right">🌪️ Asp</th>
       <th style="text-align:right">☕ Café</th>
+      <th style="text-align:right">🎮 Multi</th>
+      <th style="text-align:right">🔖 N° Série</th>
       <th style="text-align:right">Total</th>
     </tr></thead><tbody>`;
 
   teams.forEach((t, i) => {
     const rank = i + 1;
     const isTop = rank <= 3;
-    const aspPct = Math.max(0, (t.asp / 27) * 100);
-    const cafPct = Math.max(0, (t.caf / 27) * 100);
+    const aspPct = Math.max(0, (t.asp / MAX_DIAG_PER_WORKSHOP) * 100);
+    const cafPct = Math.max(0, (t.caf / MAX_DIAG_PER_WORKSHOP) * 100);
+    const mulPct = Math.max(0, (t.mul / MAX_DIAG_PER_WORKSHOP) * 100);
     const membersHtml = t.members && t.members.length > 0
       ? `<div class="team-members">${t.members.join(' · ')}</div>`
       : '';
+    const fmt = v => (v > 0 ? '+' : '') + v;
     tableHtml += `<tr>
       <td><div class="rank-num ${isTop?'top':''}">${rank}</div></td>
       <td>
@@ -275,11 +306,14 @@ function renderLeaderboard(data, teamsData) {
         <div style="display:flex;gap:4px;margin-top:6px">
           <div style="flex:1"><div class="progress-bar"><div class="progress-fill fill-asp" style="width:${aspPct}%"></div></div></div>
           <div style="flex:1"><div class="progress-bar"><div class="progress-fill fill-caf" style="width:${cafPct}%"></div></div></div>
+          <div style="flex:1"><div class="progress-bar"><div class="progress-fill fill-mul" style="width:${mulPct}%"></div></div></div>
         </div>
       </td>
-      <td style="text-align:right"><div class="score-asp">${t.asp > 0 ? '+' : ''}${t.asp}</div></td>
-      <td style="text-align:right"><div class="score-caf">${t.caf > 0 ? '+' : ''}${t.caf}</div></td>
-      <td style="text-align:right"><div class="score-total ${rank===1?'leader':''}">${t.total > 0 ? '+' : ''}${t.total}</div></td>
+      <td style="text-align:right"><div class="score-asp">${fmt(t.asp)}</div></td>
+      <td style="text-align:right"><div class="score-caf">${fmt(t.caf)}</div></td>
+      <td style="text-align:right"><div class="score-mul">${fmt(t.mul)}</div></td>
+      <td style="text-align:right"><div class="score-serial">${fmt(t.serialBonus)}</div></td>
+      <td style="text-align:right"><div class="score-total ${rank===1?'leader':''}">${fmt(t.total)}</div></td>
     </tr>`;
   });
   tableHtml += '</tbody></table>';
@@ -318,7 +352,7 @@ function showAdminPanel() {
     <div class="admin-section">
       <div class="admin-section-title">📊 Export des résultats</div>
       <button class="export-btn" onclick="exportCSV()">📥 Télécharger les résultats (CSV)</button>
-      <div style="font-size:11px;color:#666;margin-top:4px">Ouvrable dans Excel • Inclut toutes les réponses + noms des membres</div>
+      <div style="font-size:11px;color:#666;margin-top:4px">Ouvrable dans Excel • Diagnostic + N° de série + membres</div>
     </div>
 
     <div class="admin-section">
@@ -353,7 +387,9 @@ async function exportCSV() {
     const rows = [[
       'Rang', 'Équipe ID', 'Nom équipe', 'Membres',
       'Atelier', 'Produit', 'Réponse donnée', 'Bonne réponse',
-      'Correct ?', 'Points', 'Date/Heure'
+      'Diag OK ?', 'Points diagnostic',
+      'N° série saisi', 'N° série attendu', 'Série OK ?', 'Points série',
+      'Total ligne', 'Date/Heure'
     ]];
 
     // Compute rankings
@@ -362,7 +398,9 @@ async function exportCSV() {
       .sort(([,a],[,b]) => b.total - a.total)
       .reduce((acc, [id], i) => { acc[id] = i + 1; return acc; }, {});
 
-    ['asp', 'caf'].forEach(workshop => {
+    const workshopLabel = { asp:'Aspiration', caf:'Broyeurs Café', mul:'Multimédia' };
+
+    ['asp', 'caf', 'mul'].forEach(workshop => {
       const ws = submissions[workshop] || {};
       Object.keys(ws).forEach(teamId => {
         const teamData = teamsData[teamId] || {};
@@ -371,17 +409,22 @@ async function exportCSV() {
         const rang = ranked[teamId] || '-';
 
         Object.values(ws[teamId]).forEach(sub => {
-          const isCorrect = sub.score > 0 ? 'Oui' : 'Non';
+          const diagScore   = (sub.diagScore !== undefined) ? sub.diagScore : (sub.score || 0);
+          const serialScore = (sub.serialScore !== undefined) ? sub.serialScore : 0;
+          const total = (sub.score !== undefined) ? sub.score : (diagScore + serialScore);
+          const diagOK = diagScore > 0 ? 'Oui' : 'Non';
+          const serialOK = sub.serialCorrect === true ? 'Oui' : (sub.serialCorrect === false ? 'Non' : '—');
           const dateStr = sub.timestamp
             ? new Date(sub.timestamp).toLocaleString('fr-FR')
             : '';
           rows.push([
             rang, teamId, teamName, members,
-            workshop === 'asp' ? 'Aspiration' : 'Broyeurs Café',
+            workshopLabel[workshop] || workshop,
             sub.product || '',
             sub.answer || '', sub.correct || '',
-            isCorrect, sub.score || 0,
-            dateStr
+            diagOK, diagScore,
+            sub.serialInput || '', sub.serialExpected || '', serialOK, serialScore,
+            total, dateStr
           ]);
         });
       });

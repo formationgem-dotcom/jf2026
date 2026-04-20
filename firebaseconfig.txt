@@ -1,0 +1,35 @@
+npm install firebase
+
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCZVWNDjMG8XzN1X5L8UwrFZ8ThMk56zO0",
+  authDomain: "jf2026-filtering.firebaseapp.com",
+  databaseURL: "https://jf2026-filtering-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "jf2026-filtering",
+  storageBucket: "jf2026-filtering.firebasestorage.app",
+  messagingSenderId: "505979371071",
+  appId: "1:505979371071:web:428fe599f2966e5997c28a"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+
+https://github.com/formationgem-dotcom/jf2026.git
+
+echo "# jf2026" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/formationgem-dotcom/jf2026.git
+git push -u origin main
+
+git remote add origin https://github.com/formationgem-dotcom/jf2026.git
+git branch -M main
+git push -u origin main
