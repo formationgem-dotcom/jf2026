@@ -188,9 +188,9 @@ const FIREBASE_CONFIG = {
 };
 
 /* ═══════════════════════════════════════════
-   DONNÉES — ÉQUIPES (10 slots)
+   DONNÉES — ÉQUIPES (30 slots communs aux 3 ateliers)
 ═══════════════════════════════════════════ */
-const TEAMS = Array.from({length: 10}, (_, i) => ({
+const TEAMS = Array.from({length: 30}, (_, i) => ({
   id: `E${String(i+1).padStart(2,'0')}`,
   name: `Équipe ${i+1}`
 }));
@@ -388,7 +388,7 @@ function route(productId) {
 function setApp(html) { document.getElementById('app').innerHTML = html; }
 
 function header(showTeam = true) {
-  const team = currentTeam ? `<span class="header-team" onclick="changeTeam()">${currentTeam.name}</span>` : '';
+  const team = currentTeam ? `<span class="header-team" style="cursor:default">${currentTeam.name}</span>` : '';
   return `<div class="header">
     <div class="header-left">
       <img src="Logo JF2026.jpg" alt="JF2026" class="header-logo" onerror="this.style.display='none'">
@@ -426,7 +426,7 @@ function showHome() {
         <a class="btn-link btn-leaderboard" href="leaderboard.html">🏆 Voir le classement</a>
         ${!currentTeam
           ? `<button class="btn-link btn-outline" onclick="showTeamSelect()">Sélectionner mon équipe</button>`
-          : `<button class="btn-link btn-outline" onclick="changeTeam()">Changer d'équipe</button>`}
+          : ''}
       </div>
     </div>
   </div>`);
@@ -452,10 +452,14 @@ async function showTeamSelect() {
     const isTaken = !!reg;
     const memberCount = reg?.members?.length || 0;
     const statusText = isTaken
-      ? `<div style="font-size:11px;color:var(--gold);margin-top:4px">${memberCount > 0 ? memberCount + ' membre' + (memberCount > 1 ? 's' : '') : 'Inscrite'}</div>`
-      : `<div style="font-size:11px;color:#666;margin-top:4px">Disponible</div>`;
-    const safeName = displayName.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return `<button class="team-btn${isTaken ? ' taken' : ''}" onclick="showTeamForm('${t.id}','${safeName}')">
+      ? `<div style="font-size:11px;color:#999;margin-top:4px">🔒 ${memberCount > 0 ? memberCount + ' membre' + (memberCount > 1 ? 's' : '') : 'Inscrite'}</div>`
+      : `<div style="font-size:11px;color:var(--gold);margin-top:4px">Disponible</div>`;
+    if (isTaken) {
+      return `<button class="team-btn taken" disabled style="opacity:0.5;cursor:not-allowed">
+        ${displayName}${statusText}
+      </button>`;
+    }
+    return `<button class="team-btn" onclick="showTeamForm('${t.id}','${displayName.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
       ${displayName}${statusText}
     </button>`;
   }).join('');
@@ -463,12 +467,23 @@ async function showTeamSelect() {
   setApp(`${header(false)}
   <div class="content">
     <div class="screen-title">👋 Qui êtes-vous ?</div>
-    <div class="screen-sub">Choisissez un slot et créez votre équipe</div>
+    <div class="screen-sub">Choisissez un slot libre et créez votre équipe (le nom sera verrouillé après validation)</div>
     <div class="teams-grid">${grid}</div>
   </div>`);
 }
 
-function showTeamForm(id, currentName) {
+async function showTeamForm(id, currentName) {
+  // Garde-fou : si le slot est déjà verrouillé côté Firebase, on refuse l'accès au formulaire
+  if (db) {
+    try {
+      const snap = await db.ref(`/teams/${id}`).get();
+      if (snap.exists() && snap.val()?.members?.length > 0) {
+        showToast('⛔ Ce slot est déjà pris par une autre équipe.');
+        setTimeout(() => showTeamSelect(), 900);
+        return;
+      }
+    } catch(e) {}
+  }
   const defaultName = currentName || TEAMS.find(t => t.id === id)?.name || id;
   setApp(`${header(false)}
   <div class="content">
@@ -527,11 +542,17 @@ async function confirmTeam(id) {
     return;
   }
 
-  // Save team registration to Firebase
+  // Save team registration to Firebase — anti-overwrite: refuser si déjà inscrite
   if (db) {
     try {
+      const existing = await db.ref(`/teams/${id}`).get();
+      if (existing.exists() && existing.val()?.members?.length > 0) {
+        showToast('⛔ Ce slot vient d\'être pris par une autre équipe.');
+        setTimeout(() => showTeamSelect(), 1200);
+        return;
+      }
       await db.ref(`/teams/${id}`).set({
-        id, name, members, updatedAt: Date.now()
+        id, name, members, updatedAt: Date.now(), locked: true
       });
     } catch(e) {
       showToast('Attention : erreur de connexion, continuez quand même.');
@@ -549,11 +570,7 @@ function selectTeam(id, name, members = []) {
   else showHome();
 }
 
-function changeTeam() {
-  currentTeam = null; pendingProduct = null;
-  localStorage.removeItem('jf2026_team');
-  showTeamSelect();
-}
+// changeTeam() supprimée : une fois inscrite, l'équipe est verrouillée (JF2026)
 
 function workshopMeta(w) {
   if (w === 'asp') return {cls:'asp', badge:'badge-asp', name:'🌪️ Aspiration'};

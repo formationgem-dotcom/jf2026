@@ -190,13 +190,13 @@ Outil recommandé : **[qr-code-generator.com](https://qr-code-generator.com)**
 
 ## ÉTAPE 6 — Personnaliser les noms d'équipes (optionnel)
 
-Par défaut les équipes s'appellent "Équipe 1" à "Équipe 10" — les équipes renseignent elles-mêmes leur nom + leurs membres au premier scan. Aucune modif nécessaire côté code.
+Par défaut les équipes s'appellent "Équipe 1" à "Équipe 30" (30 slots communs aux 3 ateliers) — les équipes renseignent elles-mêmes leur nom + leurs membres au premier scan. **Une fois validée, l'inscription est verrouillée** : plus aucune modification possible du nom ni des membres, pas de changement d'équipe. Aucune modif nécessaire côté code.
 
 Si vous voulez pré-remplir des noms d'équipes (ex: "Les Aspirants", "Team Café"…) :
 
 Dans `index.html` **ET** `leaderboard.html`, remplacez :
 ```js
-const TEAMS = Array.from({length: 10}, (_, i) => ({
+const TEAMS = Array.from({length: 30}, (_, i) => ({
   id: `E${String(i+1).padStart(2,'0')}`,
   name: `Équipe ${i+1}`
 }));
