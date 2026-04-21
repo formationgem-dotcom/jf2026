@@ -44,7 +44,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 
 /* TABLE */
 .table-wrap { padding: 0 16px 32px; overflow-x: auto; }
-.rank-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+.rank-table { width: 100%; border-collapse: collapse; min-width: 720px; }
 .rank-table th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #aaa; padding: 10px 8px; text-align: left; border-bottom: 1px solid #333; white-space: nowrap; }
 .rank-table td { padding: 12px 8px; border-bottom: 1px solid #222; vertical-align: middle; }
 .rank-table tr:last-child td { border-bottom: none; }
@@ -59,6 +59,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 .score-caf { color: var(--coffee2); font-weight: 700; font-size: 14px; }
 .score-mul { color: var(--mul2); font-weight: 700; font-size: 14px; }
 .score-serial { color: var(--gold); font-weight: 700; font-size: 14px; }
+.score-keyword { color: #4caf50; font-weight: 700; font-size: 14px; }
 .score-total { font-size: 22px; font-weight: 900; color: var(--white); text-align: right; }
 .score-total.leader { color: var(--gold); }
 .progress-bar { background: #333; border-radius: 4px; height: 4px; margin-top: 4px; overflow: hidden; }
@@ -159,9 +160,10 @@ const FIREBASE_CONFIG = {
 };
 
 const ADMIN_PIN = "2026";
-/* Max theoretical : diag 2*15 par atelier = 30 × 3 + série 1*45 = 135 pts */
+/* Max theoretical : diag 2*15 par atelier = 30 × 3 + série 1*45 + mot-clé SAVVY 1*45 = 180 pts */
 const MAX_DIAG_PER_WORKSHOP = 30;
 const MAX_SERIAL_TOTAL = 45;
+const MAX_KEYWORD_TOTAL = 45;
 
 const TEAMS_LIST = Array.from({length:30},(_,i)=>({id:`E${String(i+1).padStart(2,'0')}`,name:`Équipe ${i+1}`}));
 const ASP_PRODUCTS = Array.from({length:15},(_,i)=>`ASP-${String(i+1).padStart(2,'0')}`);
@@ -201,9 +203,10 @@ function init() {
 
 /**
  * Calcule les scores par équipe avec ventilation :
- *  - asp / caf / mul : score DIAGNOSTIC uniquement (Filtering / Réparation)
- *  - serialBonus     : bonus global N° de série (somme des serialScore tous ateliers)
- *  - total           : somme des 4
+ *  - asp / caf / mul  : score DIAGNOSTIC uniquement (Filtering / Réparation)
+ *  - serialBonus      : bonus global N° de série (somme des serialScore tous ateliers)
+ *  - keywordBonus     : bonus global Mot-clé SAVVY (somme des keywordScore tous ateliers)
+ *  - total            : somme des 5
  */
 function calculateScores(data, teamsData) {
   const scores = {};
@@ -211,15 +214,19 @@ function calculateScores(data, teamsData) {
     const fbTeam = teamsData[t.id];
     const name = fbTeam?.name || t.name;
     const members = fbTeam?.members || [];
-    scores[t.id] = {name, members, asp:0, caf:0, mul:0, serialBonus:0, total:0, responses:0};
+    scores[t.id] = {name, members, asp:0, caf:0, mul:0, serialBonus:0, keywordBonus:0, total:0, responses:0};
   });
 
   function extractScores(sub) {
-    // Rétro-compatibilité : si diagScore/serialScore absents, on reconstruit depuis "score".
-    if (sub.diagScore !== undefined || sub.serialScore !== undefined) {
-      return { diag: sub.diagScore || 0, serial: sub.serialScore || 0 };
+    // Rétro-compatibilité : si diagScore/serialScore/keywordScore absents, on reconstruit depuis "score".
+    if (sub.diagScore !== undefined || sub.serialScore !== undefined || sub.keywordScore !== undefined) {
+      return {
+        diag: sub.diagScore || 0,
+        serial: sub.serialScore || 0,
+        keyword: sub.keywordScore || 0
+      };
     }
-    return { diag: sub.score || 0, serial: 0 };
+    return { diag: sub.score || 0, serial: 0, keyword: 0 };
   }
 
   function processWorkshop(workshop, products) {
@@ -228,9 +235,10 @@ function calculateScores(data, teamsData) {
       Object.keys(ws).forEach(teamId => {
         const sub = ws[teamId][prodId];
         if (sub && scores[teamId] !== undefined) {
-          const { diag, serial } = extractScores(sub);
+          const { diag, serial, keyword } = extractScores(sub);
           scores[teamId][workshop] += diag;
           scores[teamId].serialBonus += serial;
+          scores[teamId].keywordBonus += keyword;
           scores[teamId].responses += 1;
         }
       });
@@ -241,14 +249,14 @@ function calculateScores(data, teamsData) {
   processWorkshop('mul', MUL_PRODUCTS);
   Object.keys(scores).forEach(id => {
     const s = scores[id];
-    s.total = s.asp + s.caf + s.mul + s.serialBonus;
+    s.total = s.asp + s.caf + s.mul + s.serialBonus + s.keywordBonus;
   });
   return scores;
 }
 
 function renderLeaderboard(data, teamsData) {
   const scores = calculateScores(data, teamsData);
-  const teams = Object.values(scores).sort((a,b) => b.total - a.total || b.serialBonus - a.serialBonus);
+  const teams = Object.values(scores).sort((a,b) => b.total - a.total || (b.serialBonus + b.keywordBonus) - (a.serialBonus + a.keywordBonus));
   const totalResponses = teams.reduce((s,t)=>s+t.responses,0);
   const activeTeams = teams.filter(t=>t.responses>0).length;
   const maxScore = teams[0]?.total || 0;
@@ -284,6 +292,7 @@ function renderLeaderboard(data, teamsData) {
       <th style="text-align:right">☕ Café</th>
       <th style="text-align:right">🎮 Multi</th>
       <th style="text-align:right">🔖 N° Série</th>
+      <th style="text-align:right">🔑 SAVVY</th>
       <th style="text-align:right">Total</th>
     </tr></thead><tbody>`;
 
@@ -313,6 +322,7 @@ function renderLeaderboard(data, teamsData) {
       <td style="text-align:right"><div class="score-caf">${fmt(t.caf)}</div></td>
       <td style="text-align:right"><div class="score-mul">${fmt(t.mul)}</div></td>
       <td style="text-align:right"><div class="score-serial">${fmt(t.serialBonus)}</div></td>
+      <td style="text-align:right"><div class="score-keyword">${fmt(t.keywordBonus)}</div></td>
       <td style="text-align:right"><div class="score-total ${rank===1?'leader':''}">${fmt(t.total)}</div></td>
     </tr>`;
   });
@@ -352,7 +362,7 @@ function showAdminPanel() {
     <div class="admin-section">
       <div class="admin-section-title">📊 Export des résultats</div>
       <button class="export-btn" onclick="exportCSV()">📥 Télécharger les résultats (CSV)</button>
-      <div style="font-size:11px;color:#666;margin-top:4px">Ouvrable dans Excel • Diagnostic + N° de série + membres</div>
+      <div style="font-size:11px;color:#666;margin-top:4px">Ouvrable dans Excel • Diagnostic + N° de série + Mot-clé SAVVY + membres</div>
     </div>
 
     <div class="admin-section">
@@ -389,6 +399,7 @@ async function exportCSV() {
       'Atelier', 'Produit', 'Réponse donnée', 'Bonne réponse',
       'Diag OK ?', 'Points diagnostic',
       'N° série saisi', 'N° série attendu', 'Série OK ?', 'Points série',
+      'Mot-clé SAVVY saisi', 'Mot-clé SAVVY attendu', 'SAVVY OK ?', 'Points SAVVY',
       'Total ligne', 'Date/Heure'
     ]];
 
@@ -409,11 +420,13 @@ async function exportCSV() {
         const rang = ranked[teamId] || '-';
 
         Object.values(ws[teamId]).forEach(sub => {
-          const diagScore   = (sub.diagScore !== undefined) ? sub.diagScore : (sub.score || 0);
-          const serialScore = (sub.serialScore !== undefined) ? sub.serialScore : 0;
-          const total = (sub.score !== undefined) ? sub.score : (diagScore + serialScore);
+          const diagScore    = (sub.diagScore !== undefined) ? sub.diagScore : (sub.score || 0);
+          const serialScore  = (sub.serialScore !== undefined) ? sub.serialScore : 0;
+          const keywordScore = (sub.keywordScore !== undefined) ? sub.keywordScore : 0;
+          const total = (sub.score !== undefined) ? sub.score : (diagScore + serialScore + keywordScore);
           const diagOK = diagScore > 0 ? 'Oui' : 'Non';
           const serialOK = sub.serialCorrect === true ? 'Oui' : (sub.serialCorrect === false ? 'Non' : '—');
+          const keywordOK = sub.keywordCorrect === true ? 'Oui' : (sub.keywordCorrect === false ? 'Non' : '—');
           const dateStr = sub.timestamp
             ? new Date(sub.timestamp).toLocaleString('fr-FR')
             : '';
@@ -424,6 +437,7 @@ async function exportCSV() {
             sub.answer || '', sub.correct || '',
             diagOK, diagScore,
             sub.serialInput || '', sub.serialExpected || '', serialOK, serialScore,
+            sub.keywordInput || '', sub.keywordExpected || '', keywordOK, keywordScore,
             total, dateStr
           ]);
         });

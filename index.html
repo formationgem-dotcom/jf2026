@@ -214,143 +214,143 @@ const TEAMS = Array.from({length: 30}, (_, i) => ({
 const F = "Filtering", R = "Réparation";
 const PRODUCTS = {
   /* ──────── ATELIER ASPIRATION ──────── */
-  "ASP-01":{workshop:"asp",type:"Aspirateur traîneau", serial:"SN-ASP-001",
+  "ASP-01":{workshop:"asp",type:"Aspirateur traîneau", serial:"SN-ASP-001", keyword:"MOT-ASP-001",
     symptom:"Depuis quelques semaines, mon aspirateur n'aspire presque plus rien. Il fait du bruit mais ne ramasse plus.",
     correct:F,points:2,explanation:"Filtre encrassé ou plein — nettoyer ou remplacer le filtre résout le problème immédiatement."},
-  "ASP-02":{workshop:"asp",type:"Aspirateur traîneau", serial:"SN-ASP-002",
+  "ASP-02":{workshop:"asp",type:"Aspirateur traîneau", serial:"SN-ASP-002", keyword:"MOT-ASP-002",
     symptom:"Mon sac se remplit extrêmement vite après seulement une utilisation ! Il y a forcément un problème.",
     correct:F,points:2,explanation:"Sac saturé — le sac doit simplement être remplacé. L'aspirateur fonctionne normalement."},
-  "ASP-03":{workshop:"asp",type:"Aspirateur traîneau", serial:"SN-ASP-003",
+  "ASP-03":{workshop:"asp",type:"Aspirateur traîneau", serial:"SN-ASP-003", keyword:"MOT-ASP-003",
     symptom:"Une odeur de brûlé se dégage de l'appareil lorsqu'il fonctionne.",
     correct:R,points:1,explanation:"Odeur de brûlé = moteur défaillant. Envoi en atelier de réparation obligatoire."},
-  "ASP-04":{workshop:"asp",type:"Aspirateur traîneau", serial:"SN-ASP-004",
+  "ASP-04":{workshop:"asp",type:"Aspirateur traîneau", serial:"SN-ASP-004", keyword:"MOT-ASP-004",
     symptom:"Rien ne passe dans le tuyau. J'entends le moteur mais il n'y a aucune aspiration.",
     correct:F,points:2,explanation:"Corps étranger dans le tuyau — démontage et nettoyage du tuyau. Pas de panne."},
-  "ASP-05":{workshop:"asp",type:"Balai aspirateur", serial:"SN-ASP-005",
+  "ASP-05":{workshop:"asp",type:"Balai aspirateur", serial:"SN-ASP-005", keyword:"MOT-ASP-005",
     symptom:"Ma batterie tient moins de 5 minutes maintenant. Avant j'avais 30 minutes d'autonomie.",
     correct:R,points:1,explanation:"Batterie en fin de vie — remplacement de la batterie nécessaire. Envoi en atelier."},
-  "ASP-06":{workshop:"asp",type:"Balai aspirateur", serial:"SN-ASP-006",
+  "ASP-06":{workshop:"asp",type:"Balai aspirateur", serial:"SN-ASP-006", keyword:"MOT-ASP-006",
     symptom:"Mon balai ne démarre plus depuis ce matin. Pourtant j'ai essayé de le recharger hier soir.",
     correct:F,points:2,explanation:"Chargeur mal branché ou absence de charge — vérifier le chargement complet avant diagnostic."},
-  "ASP-07":{workshop:"asp",type:"Balai aspirateur", serial:"SN-ASP-007",
+  "ASP-07":{workshop:"asp",type:"Balai aspirateur", serial:"SN-ASP-007", keyword:"MOT-ASP-007",
     symptom:"La brosse motorisée ne tourne plus du tout. Mon balai aspire à peine.",
     correct:F,points:2,explanation:"Brosse obstruée par cheveux ou fils — nettoyer la brosse. Résolu en magasin."},
-  "ASP-08":{workshop:"asp",type:"Balai aspirateur", serial:"SN-ASP-008",
+  "ASP-08":{workshop:"asp",type:"Balai aspirateur", serial:"SN-ASP-008", keyword:"MOT-ASP-008",
     symptom:"Quand je l'allume, il vibre énormément et fait un bruit que je n'avais jamais entendu.",
     correct:R,points:1,explanation:"Vibrations fortes = roulement ou brosse défaillant. Envoi en atelier nécessaire."},
-  "ASP-09":{workshop:"asp",type:"Balai laveur", serial:"SN-ASP-009",
+  "ASP-09":{workshop:"asp",type:"Balai laveur", serial:"SN-ASP-009", keyword:"MOT-ASP-009",
     symptom:"Mon balai laveur laisse des traces blanches partout sur mon parquet après chaque passage.",
     correct:F,points:2,explanation:"Mauvais dosage de produit nettoyant — ajustement du dosage, rinçage du réservoir."},
-  "ASP-10":{workshop:"asp",type:"Balai laveur", serial:"SN-ASP-010",
+  "ASP-10":{workshop:"asp",type:"Balai laveur", serial:"SN-ASP-010", keyword:"MOT-ASP-010",
     symptom:"De l'eau s'écoule par le bas au niveau du réservoir pendant que je lave.",
     correct:R,points:1,explanation:"Joint du réservoir défaillant — envoi en atelier de réparation."},
-  "ASP-11":{workshop:"asp",type:"Balai laveur", serial:"SN-ASP-011",
+  "ASP-11":{workshop:"asp",type:"Balai laveur", serial:"SN-ASP-011", keyword:"MOT-ASP-011",
     symptom:"La brosse de lavage s'est arrêtée de tourner. Elle ne nettoie plus rien.",
     correct:F,points:2,explanation:"Tampon saturé ou coincé — nettoyage ou remplacement du tampon. Résolu en magasin."},
-  "ASP-12":{workshop:"asp",type:"Robot aspirateur", serial:"SN-ASP-012",
+  "ASP-12":{workshop:"asp",type:"Robot aspirateur", serial:"SN-ASP-012", keyword:"MOT-ASP-012",
     symptom:"Mon robot tourne en rond et s'arrête au bout de 2 minutes. Il ne fait plus le tour de la pièce.",
     correct:F,points:2,explanation:"Capteurs anti-chute sales — nettoyer les capteurs sous le robot. Problème résolu."},
-  "ASP-13":{workshop:"asp",type:"Robot aspirateur", serial:"SN-ASP-013",
+  "ASP-13":{workshop:"asp",type:"Robot aspirateur", serial:"SN-ASP-013", keyword:"MOT-ASP-013",
     symptom:"Mon robot ne retourne plus à sa base depuis hier. Il reste bloqué au milieu de la pièce.",
     correct:F,points:2,explanation:"Contacts de station oxydés ou station mal placée — nettoyage et repositionnement."},
-  "ASP-14":{workshop:"asp",type:"Robot laveur", serial:"SN-ASP-014",
+  "ASP-14":{workshop:"asp",type:"Robot laveur", serial:"SN-ASP-014", keyword:"MOT-ASP-014",
     symptom:"Mon robot laveur laisse des traînées humides partout. Le sol est encore sale après son passage.",
     correct:F,points:2,explanation:"Serpillière saturée ou non rincée — laver et rincer la serpillière. Pas de panne."},
-  "ASP-15":{workshop:"asp",type:"Robot aspirateur", serial:"SN-ASP-015",
+  "ASP-15":{workshop:"asp",type:"Robot aspirateur", serial:"SN-ASP-015", keyword:"MOT-ASP-015",
     symptom:"Mon robot aspire de moins en moins bien depuis 2 mois. Il n'aspire presque plus rien.",
     correct:F,points:2,explanation:"Filtre HEPA bouché et bac plein — nettoyer le filtre et vider le bac. Résolu en magasin."},
 
   /* ──────── ATELIER BROYEURS CAFÉ ──────── */
-  "CAF-01":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-001",
+  "CAF-01":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-001", keyword:"MOT-CAF-001",
     symptom:"Mon moulin ne démarre pas du tout. Pourtant il est bien branché sur la prise.",
     correct:F,points:2,explanation:"Bac non verrouillé — la sécurité empêche le démarrage. Verrouiller le bac, problème résolu."},
-  "CAF-02":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-002",
+  "CAF-02":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-002", keyword:"MOT-CAF-002",
     symptom:"Mon café est beaucoup trop grossier. On dirait du café pour cafetière filtre.",
     correct:F,points:2,explanation:"Réglage de mouture trop grossier — ajuster le niveau de mouture. Pas de panne."},
-  "CAF-03":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-003",
+  "CAF-03":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-003", keyword:"MOT-CAF-003",
     symptom:"Il y a de la poudre de café partout autour de l'appareil après chaque utilisation.",
     correct:F,points:2,explanation:"Électricité statique (phénomène normal) — explication au client, pas de défaut produit."},
-  "CAF-04":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-004",
+  "CAF-04":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-004", keyword:"MOT-CAF-004",
     symptom:"Mon café a un goût amer et comme brûlé. Ce n'est pas du tout agréable à boire.",
     correct:F,points:2,explanation:"Détartrage nécessaire + mouture trop fine — entretien et réglage. Résolu en magasin."},
-  "CAF-05":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-005",
+  "CAF-05":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-005", keyword:"MOT-CAF-005",
     symptom:"Mon moulin s'arrête tout seul en pleine mouture. Je dois attendre avant de recommencer.",
     correct:F,points:2,explanation:"Protection thermique activée (utilisation continue excessive) — laisser refroidir avant de recommencer."},
-  "CAF-06":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-006",
+  "CAF-06":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-006", keyword:"MOT-CAF-006",
     symptom:"J'entends un bruit de craquement anormal depuis que j'ai acheté un nouveau paquet de café.",
     correct:F,points:2,explanation:"Corps étranger (caillou, bois) dans les grains — vider et inspecter la trémie."},
-  "CAF-07":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-007",
+  "CAF-07":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-007", keyword:"MOT-CAF-007",
     symptom:"Le café ne sort plus du tout. Il y a un bruit bizarre et la lame ne semble plus tourner.",
     correct:R,points:1,explanation:"Lame fissurée ou cassée — envoi en atelier de réparation obligatoire."},
-  "CAF-08":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-008",
+  "CAF-08":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-008", keyword:"MOT-CAF-008",
     symptom:"Plus rien ne coule de ma cafetière depuis ce matin. Le voyant est allumé normalement.",
     correct:F,points:2,explanation:"Passage d'eau bouché par le calcaire — détartrage de la cafetière. Résolu en magasin."},
-  "CAF-09":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-009",
+  "CAF-09":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-009", keyword:"MOT-CAF-009",
     symptom:"De l'eau s'écoule par le dessous de ma cafetière quand elle chauffe.",
     correct:R,points:1,explanation:"Joint de résistance défaillant — envoi en atelier de réparation."},
-  "CAF-10":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-010",
+  "CAF-10":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-010", keyword:"MOT-CAF-010",
     symptom:"La mouture est très irrégulière : moitié poudre très fine, moitié grains entiers.",
     correct:R,points:1,explanation:"Meules usées — remplacement des meules nécessaire. Envoi en atelier."},
-  "CAF-11":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-011",
+  "CAF-11":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-011", keyword:"MOT-CAF-011",
     symptom:"Mon café est trop léger et peu concentré. Pourtant je mets autant de grains qu'avant.",
     correct:F,points:2,explanation:"Dosage insuffisant ou mouture inadaptée — ajustement du dosage et de la mouture."},
-  "CAF-12":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-012",
+  "CAF-12":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-012", keyword:"MOT-CAF-012",
     symptom:"Le voyant d'erreur s'allume tout de suite au démarrage. Je ne comprends pas pourquoi.",
     correct:F,points:2,explanation:"Réservoir d'eau mal positionné — repositionner correctement le réservoir. Pas de panne."},
-  "CAF-13":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-013",
+  "CAF-13":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-013", keyword:"MOT-CAF-013",
     symptom:"Après la mouture, il reste des grains entiers dans la trémie. Ils ne sont pas broyés.",
     correct:F,points:2,explanation:"Surcharge de grains dans la trémie — réduire la quantité de grains à moudre."},
-  "CAF-14":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-014",
+  "CAF-14":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-014", keyword:"MOT-CAF-014",
     symptom:"Mon café n'a plus aucun arôme depuis quelques jours. Il est complètement insipide.",
     correct:F,points:2,explanation:"Grains trop vieux ou mal conservés — conseiller le client sur la fraîcheur et la conservation."},
-  "CAF-15":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-015",
+  "CAF-15":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-015", keyword:"MOT-CAF-015",
     symptom:"Il y a un dépôt de poudre de café sur toutes les surfaces autour de l'appareil.",
     correct:F,points:2,explanation:"Résidu de café et électricité statique — nettoyage et explication au client. Phénomène normal."},
 
   /* ──────── ATELIER MULTIMÉDIA ──────── */
-  "MUL-01":{workshop:"mul",type:"TV OLED 55\"", serial:"SN-MUL-001",
+  "MUL-01":{workshop:"mul",type:"TV OLED 55\"", serial:"SN-MUL-001", keyword:"MOT-MUL-001",
     symptom:"Depuis ce matin, plus aucun son ne sort de ma TV, pourtant l'image fonctionne parfaitement.",
     correct:F,points:2,explanation:"Vérifier le mute, la sortie audio sélectionnée et le câble HDMI (eARC). Souvent un mauvais réglage source."},
-  "MUL-02":{workshop:"mul",type:"TV LED 65\"", serial:"SN-MUL-002",
+  "MUL-02":{workshop:"mul",type:"TV LED 65\"", serial:"SN-MUL-002", keyword:"MOT-MUL-002",
     symptom:"Des lignes verticales colorées traversent mon écran en permanence, même sur l'écran d'accueil.",
     correct:R,points:1,explanation:"Dalle défectueuse (nappe T-CON ou panneau) — envoi en atelier de réparation obligatoire."},
-  "MUL-03":{workshop:"mul",type:"Barre de son", serial:"SN-MUL-003",
+  "MUL-03":{workshop:"mul",type:"Barre de son", serial:"SN-MUL-003", keyword:"MOT-MUL-003",
     symptom:"Ma barre de son se coupe toute seule au bout de 15 minutes si personne ne regarde la TV.",
     correct:F,points:2,explanation:"Mode veille automatique activé — à désactiver dans les réglages système. Pas de panne."},
-  "MUL-04":{workshop:"mul",type:"Casque Bluetooth", serial:"SN-MUL-004",
+  "MUL-04":{workshop:"mul",type:"Casque Bluetooth", serial:"SN-MUL-004", keyword:"MOT-MUL-004",
     symptom:"Mon casque grésille en permanence, même quand la musique est en pause.",
     correct:R,points:1,explanation:"Haut-parleur (driver) défectueux — envoi en atelier de réparation."},
-  "MUL-05":{workshop:"mul",type:"Enceinte Bluetooth portable", serial:"SN-MUL-005",
+  "MUL-05":{workshop:"mul",type:"Enceinte Bluetooth portable", serial:"SN-MUL-005", keyword:"MOT-MUL-005",
     symptom:"Ma batterie ne tient plus que 45 minutes alors qu'avant j'avais 12h d'autonomie.",
     correct:R,points:1,explanation:"Batterie en fin de vie — remplacement en atelier nécessaire."},
-  "MUL-06":{workshop:"mul",type:"Tablette", serial:"SN-MUL-006",
+  "MUL-06":{workshop:"mul",type:"Tablette", serial:"SN-MUL-006", keyword:"MOT-MUL-006",
     symptom:"L'écran tactile ne répond plus du tout dans le coin en haut à droite.",
     correct:R,points:1,explanation:"Vitre tactile (digitizer) défectueuse — remplacement en atelier."},
-  "MUL-07":{workshop:"mul",type:"PC portable", serial:"SN-MUL-007",
+  "MUL-07":{workshop:"mul",type:"PC portable", serial:"SN-MUL-007", keyword:"MOT-MUL-007",
     symptom:"Mon PC met plus de 3 minutes à démarrer, c'est devenu insupportable.",
     correct:F,points:2,explanation:"Optimisation au démarrage : désactiver les programmes au lancement, nettoyer le disque. Résolu en magasin."},
-  "MUL-08":{workshop:"mul",type:"Console de salon", serial:"SN-MUL-008",
+  "MUL-08":{workshop:"mul",type:"Console de salon", serial:"SN-MUL-008", keyword:"MOT-MUL-008",
     symptom:"Ma manette ne se connecte plus à la console depuis hier, même en restant juste à côté.",
     correct:F,points:2,explanation:"Resynchronisation nécessaire — bouton reset manette + câble USB. Pas de panne."},
-  "MUL-09":{workshop:"mul",type:"Smartphone", serial:"SN-MUL-009",
+  "MUL-09":{workshop:"mul",type:"Smartphone", serial:"SN-MUL-009", keyword:"MOT-MUL-009",
     symptom:"Mon écran reste noir mais je reçois bien les appels et les notifications (il vibre).",
     correct:R,points:1,explanation:"Écran (LCD/OLED) HS — remplacement en atelier."},
-  "MUL-10":{workshop:"mul",type:"Écouteurs sans fil", serial:"SN-MUL-010",
+  "MUL-10":{workshop:"mul",type:"Écouteurs sans fil", serial:"SN-MUL-010", keyword:"MOT-MUL-010",
     symptom:"Un seul écouteur fonctionne, l'autre est complètement muet.",
     correct:F,points:2,explanation:"Désynchronisation — procédure de reset (remise dans le boîtier + appui long). Résolu en magasin."},
-  "MUL-11":{workshop:"mul",type:"Vidéoprojecteur", serial:"SN-MUL-011",
+  "MUL-11":{workshop:"mul",type:"Vidéoprojecteur", serial:"SN-MUL-011", keyword:"MOT-MUL-011",
     symptom:"Une tache sombre est apparue au centre de l'image projetée, elle ne part pas.",
     correct:R,points:1,explanation:"Panneau LCD ou puce DMD défectueux — envoi en atelier de réparation."},
-  "MUL-12":{workshop:"mul",type:"Home-cinéma 5.1", serial:"SN-MUL-012",
+  "MUL-12":{workshop:"mul",type:"Home-cinéma 5.1", serial:"SN-MUL-012", keyword:"MOT-MUL-012",
     symptom:"Aucun son ne sort des enceintes arrière, seules celles de devant fonctionnent.",
     correct:F,points:2,explanation:"Mode audio mal réglé (stéréo au lieu de 5.1) ou câbles HP mal branchés. Résolu en magasin."},
-  "MUL-13":{workshop:"mul",type:"Montre connectée", serial:"SN-MUL-013",
+  "MUL-13":{workshop:"mul",type:"Montre connectée", serial:"SN-MUL-013", keyword:"MOT-MUL-013",
     symptom:"Elle ne s'allume plus du tout, même après une nuit entière sur le chargeur.",
     correct:R,points:1,explanation:"Batterie interne HS — remplacement en atelier de réparation."},
-  "MUL-14":{workshop:"mul",type:"Casque audio filaire", serial:"SN-MUL-014",
+  "MUL-14":{workshop:"mul",type:"Casque audio filaire", serial:"SN-MUL-014", keyword:"MOT-MUL-014",
     symptom:"Je n'entends le son que d'un seul côté dans mon casque.",
     correct:F,points:2,explanation:"Jack mal enfoncé ou réglage balance audio à vérifier. Souvent résolu sans intervention."},
-  "MUL-15":{workshop:"mul",type:"Platine vinyle", serial:"SN-MUL-015",
+  "MUL-15":{workshop:"mul",type:"Platine vinyle", serial:"SN-MUL-015", keyword:"MOT-MUL-015",
     symptom:"Le son saute en permanence pendant la lecture, comme si l'aiguille glissait sur le disque.",
     correct:F,points:2,explanation:"Réglage contrepoids / anti-skating ou pointe encrassée — entretien et calibrage en magasin."},
 };
@@ -649,6 +649,18 @@ async function showProduct(productId) {
       </div>
     </div>
 
+    <div class="section-title"><span class="step-num">3</span> Mot-clé SAVVY</div>
+    <div class="serial-card" style="border-left-color:#4caf50">
+      <input type="text" class="serial-input" id="keyword-input"
+             placeholder="Saisir le mot-clé trouvé dans SAVVY"
+             autocomplete="off" autocapitalize="characters" spellcheck="false"
+             oninput="updateValidateBtn()" />
+      <div class="serial-hint">
+        📚 Mot-clé caché dans la contribution <strong>SAVVY</strong> associée à ce produit.<br>
+        Bonne saisie : <strong>+1 pt</strong> · Saisie erronée : <strong>−1 pt</strong>
+      </div>
+    </div>
+
     <button class="btn-validate" id="btn-validate" onclick="submitFinal('${productId}')" disabled>
       Valider ma réponse
     </button>
@@ -670,8 +682,9 @@ function selectAnswer(answer) {
 function updateValidateBtn() {
   const btn = document.getElementById('btn-validate');
   const serial = document.getElementById('serial-input')?.value?.trim();
+  const keyword = document.getElementById('keyword-input')?.value?.trim();
   if (!btn) return;
-  btn.disabled = !selectedAnswer || !serial || serial.length < 2;
+  btn.disabled = !selectedAnswer || !serial || serial.length < 2 || !keyword || keyword.length < 2;
 }
 
 function normalizeSerial(s) {
@@ -685,6 +698,8 @@ async function submitFinal(productId) {
   if (!selectedAnswer) { showToast('⚠️ Sélectionnez Filtering ou Réparation'); return; }
   const serialRaw = document.getElementById('serial-input')?.value?.trim() || '';
   if (!serialRaw) { showToast('⚠️ Saisissez le N° de série'); return; }
+  const keywordRaw = document.getElementById('keyword-input')?.value?.trim() || '';
+  if (!keywordRaw) { showToast('⚠️ Saisissez le mot-clé SAVVY'); return; }
 
   // Diagnostic score
   const diagCorrect = selectedAnswer === prod.correct;
@@ -694,7 +709,11 @@ async function submitFinal(productId) {
   const serialCorrect = normalizeSerial(serialRaw) === normalizeSerial(prod.serial);
   const serialScore = serialCorrect ? 1 : -1;
 
-  const totalScore = diagScore + serialScore;
+  // Keyword score (SAVVY)
+  const keywordCorrect = normalizeSerial(keywordRaw) === normalizeSerial(prod.keyword);
+  const keywordScore = keywordCorrect ? 1 : -1;
+
+  const totalScore = diagScore + serialScore + keywordScore;
 
   // Save to Firebase
   if (db) {
@@ -712,21 +731,26 @@ async function submitFinal(productId) {
         serialExpected: prod.serial,
         serialCorrect,
         serialScore,
+        keywordInput: keywordRaw,
+        keywordExpected: prod.keyword,
+        keywordCorrect,
+        keywordScore,
         score: totalScore,
         timestamp: Date.now()
       });
     } catch(e) { showToast('Erreur de connexion. Vérifiez le Wi-Fi.'); }
   }
 
-  showResult(prod, selectedAnswer, diagCorrect, diagScore, serialRaw, serialCorrect, serialScore, totalScore);
+  showResult(prod, selectedAnswer, diagCorrect, diagScore, serialRaw, serialCorrect, serialScore, keywordRaw, keywordCorrect, keywordScore, totalScore);
 }
 
-function showResult(prod, answer, diagCorrect, diagScore, serialInput, serialCorrect, serialScore, total) {
+function showResult(prod, answer, diagCorrect, diagScore, serialInput, serialCorrect, serialScore, keywordInput, keywordCorrect, keywordScore, total) {
+  const okCount = (diagCorrect ? 1 : 0) + (serialCorrect ? 1 : 0) + (keywordCorrect ? 1 : 0);
   let icon, titleClass, title;
-  if (diagCorrect && serialCorrect) {
+  if (okCount === 3) {
     icon = '🎯'; titleClass = 'correct'; title = 'Sans faute !';
-  } else if (!diagCorrect && !serialCorrect) {
-    icon = '❌'; titleClass = 'wrong'; title = 'Double erreur';
+  } else if (okCount === 0) {
+    icon = '❌'; titleClass = 'wrong'; title = 'Triple erreur';
   } else {
     icon = '⚖️'; titleClass = 'mixed'; title = 'Réponse partielle';
   }
@@ -736,8 +760,10 @@ function showResult(prod, answer, diagCorrect, diagScore, serialInput, serialCor
 
   const diagClass = diagScore > 0 ? 'score-pos' : 'score-neg';
   const serClass  = serialScore > 0 ? 'score-pos' : 'score-neg';
+  const kwClass   = keywordScore > 0 ? 'score-pos' : 'score-neg';
   const diagStr = diagScore > 0 ? `+${diagScore}` : `${diagScore}`;
   const serStr  = serialScore > 0 ? `+${serialScore}` : `${serialScore}`;
+  const kwStr   = keywordScore > 0 ? `+${keywordScore}` : `${keywordScore}`;
 
   const serialBlock = serialCorrect
     ? `<div class="result-explanation">
@@ -747,6 +773,16 @@ function showResult(prod, answer, diagCorrect, diagScore, serialInput, serialCor
     : `<div class="result-explanation">
          <div class="expl-label">❌ N° de série</div>
          <div class="expl-text">Votre saisie : <strong>${serialInput}</strong><br>N° attendu : <strong>${prod.serial}</strong></div>
+       </div>`;
+
+  const keywordBlock = keywordCorrect
+    ? `<div class="result-explanation">
+         <div class="expl-label">✅ Mot-clé SAVVY</div>
+         <div class="expl-text">Saisie correcte : <strong>${keywordInput}</strong></div>
+       </div>`
+    : `<div class="result-explanation">
+         <div class="expl-label">❌ Mot-clé SAVVY</div>
+         <div class="expl-text">Votre saisie : <strong>${keywordInput}</strong><br>Mot-clé attendu : <strong>${prod.keyword}</strong></div>
        </div>`;
 
   setApp(`${header()}
@@ -768,6 +804,11 @@ function showResult(prod, answer, diagCorrect, diagScore, serialInput, serialCor
           <div class="score-chip-value ${serClass}">${serStr}</div>
           <div class="score-chip-sub">${serialCorrect ? '✔️ Correct' : '✘ Erroné'}</div>
         </div>
+        <div class="score-chip">
+          <div class="score-chip-label">SAVVY</div>
+          <div class="score-chip-value ${kwClass}">${kwStr}</div>
+          <div class="score-chip-sub">${keywordCorrect ? '✔️ Correct' : '✘ Erroné'}</div>
+        </div>
       </div>
 
       <div class="result-explanation">
@@ -779,6 +820,7 @@ function showResult(prod, answer, diagCorrect, diagScore, serialInput, serialCor
         <div class="expl-text"><strong>${prod.correct}</strong></div>
       </div>` : ''}
       ${serialBlock}
+      ${keywordBlock}
 
       <button class="btn-next" onclick="showHome()">← Retour à l'accueil</button>
     </div>

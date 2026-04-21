@@ -3,7 +3,7 @@
 Deux étapes : **créer une base de données Firebase** (gratuit) puis **mettre le site en ligne sur GitHub Pages** (gratuit).
 Durée totale estimée : **20 minutes**.
 
-> **Nouveautés V2** : 3e atelier **Multimédia** (15 produits) + double défi par produit : **diagnostic Filtering/Réparation ET saisie du N° de série**.
+> **Nouveautés V3** : triple défi par produit — **diagnostic Filtering/Réparation + saisie du N° de série + saisie du mot-clé SAVVY** (caché dans la contribution de base de connaissances liée au produit).
 
 ---
 
@@ -16,10 +16,14 @@ Durée totale estimée : **20 minutes**.
 | ❌ Erreur Filtering / Réparation | −1 |
 | 🔖 N° de série correct | +1 |
 | ❌ N° de série erroné | −1 |
+| 🔑 Mot-clé SAVVY correct | +1 |
+| ❌ Mot-clé SAVVY erroné | −1 |
 
 - **Diagnostic** : les boutons **Filtering** ou **Réparation** s'affichent sur la fiche produit.
-- **N° de série** : champ de saisie sur la même page. L'équipe valide **diagnostic + N° de série** ensemble avec un seul bouton.
-- Le classement affiche une **colonne par atelier** (ASP / CAF / MUL) + une **colonne bonus globale N° Série**.
+- **N° de série** : champ de saisie sur la même page (étiquette produit).
+- **Mot-clé SAVVY** : champ de saisie sur la même page. L'équipe doit **ouvrir la contribution SAVVY** du produit (QR ou lien) et y repérer le mot-clé volontairement inséré — cela force la lecture avant d'agir.
+- L'équipe valide les **3 réponses ensemble** avec un seul bouton.
+- Le classement affiche une **colonne par atelier** (ASP / CAF / MUL) + une **colonne bonus globale N° Série** + une **colonne bonus globale Mot-clé SAVVY**.
 
 ---
 
@@ -77,35 +81,38 @@ Dans les deux fichiers, cherchez le bloc `FIREBASE_CONFIG` et remplacez les vale
 
 ---
 
-## ÉTAPE 3 — Renseigner les N° de série attendus
+## ÉTAPE 3 — Renseigner les N° de série ET les mots-clés SAVVY attendus
 
-C'est **l'étape clé** avant l'événement : les N° de série présents dans le code sont des **placeholders** (`SN-ASP-001`, `SN-CAF-001`, `SN-MUL-001`, …). Il faut les remplacer par les vrais N° de série des produits physiques que vous placerez sur les ateliers.
+C'est **l'étape clé** avant l'événement. Deux champs à renseigner pour chacun des 45 produits :
+
+- `serial:"SN-ASP-001"` → à remplacer par le **vrai N° de série** du produit physique en atelier (étiquette constructeur).
+- `keyword:"MOT-ASP-001"` → à remplacer par le **mot-clé que vous aurez caché** dans la contribution SAVVY liée au produit (par ex. un mot à repérer dans la procédure : `FILTRE`, `MOTEUR`, `VEILLE`, etc.).
 
 ### 3.1 Ouvrir `index.html`
 
 Cherchez le bloc `const PRODUCTS = {` (vers la ligne 190).
 
-### 3.2 Pour chaque produit, remplacer le champ `serial`
+### 3.2 Pour chaque produit, remplacer les champs `serial` ET `keyword`
 
-Exemple :
+Exemple avant :
 
 ```js
-"ASP-01":{workshop:"asp", type:"Aspirateur traîneau", serial:"SN-ASP-001",
+"ASP-01":{workshop:"asp", type:"Aspirateur traîneau", serial:"SN-ASP-001", keyword:"MOT-ASP-001",
   symptom:"Depuis quelques semaines, mon aspirateur n'aspire presque plus rien...",
   ...
 }
 ```
 
-devient par exemple :
+Exemple après :
 
 ```js
-"ASP-01":{workshop:"asp", type:"Aspirateur traîneau", serial:"RF71R-14587324A",
+"ASP-01":{workshop:"asp", type:"Aspirateur traîneau", serial:"RF71R-14587324A", keyword:"FILTRE",
   symptom:"Depuis quelques semaines, mon aspirateur n'aspire presque plus rien...",
   ...
 }
 ```
 
-> 💡 **Tolérance de saisie** : la validation ignore la casse, les espaces, les tirets et underscores. `rf71r 14587324 a` sera donc accepté comme équivalent à `RF71R-14587324A`.
+> 💡 **Tolérance de saisie** (identique pour série ET mot-clé) : la validation ignore la casse, les espaces, les tirets et underscores. `filtre`, `FILTRE` et `Filtre` sont donc équivalents.
 
 ### 3.3 Parcourir les 45 produits
 
@@ -113,7 +120,9 @@ devient par exemple :
 - `CAF-01` à `CAF-15` → 15 produits Broyeurs Café
 - `MUL-01` à `MUL-15` → 15 produits Multimédia
 
-> 📌 **Astuce** : imprimez les étiquettes-repère (code produit + vraie référence SAV) et collez-les physiquement sur les appareils en atelier. Le N° de série doit rester sur la carte produit existante (étiquette constructeur).
+> 📌 **Astuce N° série** : imprimez les étiquettes-repère (code produit + vraie référence SAV) et collez-les physiquement sur les appareils en atelier. Le N° de série doit rester sur la carte produit existante (étiquette constructeur).
+>
+> 📚 **Astuce Mot-clé SAVVY** : privilégiez des mots **simples, courts et mémorisables** (5 à 10 lettres), directement en lien avec la procédure décrite. Intégrez-les dans la contribution SAVVY de façon volontairement visible mais pas en titre — l'objectif est de garantir que l'équipe a bien **lu la fiche** avant de se prononcer.
 
 ---
 
@@ -220,9 +229,9 @@ const TEAMS = [
 | Classement en direct | `leaderboard.html` — à projeter sur écran |
 | Les équipes scannent | 45 QR codes sur les fiches produit |
 | Saisir le N° de série | Sur la fiche produit, après avoir choisi Filtering / Réparation |
+| Saisir le mot-clé SAVVY | Sur la fiche produit, après le N° de série — à trouver dans la contribution SAVVY du produit |
 | Réinitialiser les scores | `leaderboard.html` → bouton **Admin** → PIN `2026` → Remettre à zéro |
-| Changer d'équipe | Page d'accueil → bouton avec le nom d'équipe |
-| Exporter les résultats | Panneau Admin → **📥 Télécharger CSV** |
+| Exporter les résultats | Panneau Admin → **📥 Télécharger CSV** (diag + série + SAVVY + membres) |
 
 ---
 
@@ -230,15 +239,15 @@ const TEAMS = [
 
 Le max par atelier dépend du nombre de produits dont la bonne réponse est **Filtering** (+2 pts) ou **Réparation** (+1 pt).
 
-| Atelier | Filtering | Réparation | Max diagnostic | Max N° série |
-|---------|:---:|:---:|:---:|:---:|
-| 🌪️ Aspiration | 11 | 4 | **26 pts** | 15 pts |
-| ☕ Broyeurs Café | 12 | 3 | **27 pts** | 15 pts |
-| 🎮 Multimédia | 8 | 7 | **23 pts** | 15 pts |
-| **TOTAL** | **31** | **14** | **76 pts** | **45 pts** |
+| Atelier | Filtering | Réparation | Max diagnostic | Max N° série | Max Mot-clé SAVVY |
+|---------|:---:|:---:|:---:|:---:|:---:|
+| 🌪️ Aspiration | 11 | 4 | **26 pts** | 15 pts | 15 pts |
+| ☕ Broyeurs Café | 12 | 3 | **27 pts** | 15 pts | 15 pts |
+| 🎮 Multimédia | 8 | 7 | **23 pts** | 15 pts | 15 pts |
+| **TOTAL** | **31** | **14** | **76 pts** | **45 pts** | **45 pts** |
 
-> Score plafond théorique : **121 pts** (sans faute sur les 45 produits).
-> Score plancher : **−90 pts** (tout faux sur diag + série : −1×45 diag − 1×45 série).
+> Score plafond théorique : **166 pts** (sans faute sur les 45 produits : diag 76 + série 45 + SAVVY 45).
+> Score plancher : **−135 pts** (tout faux : −1×45 diag − 1×45 série − 1×45 SAVVY).
 
 ---
 
@@ -257,3 +266,6 @@ Le max par atelier dépend du nombre de produits dont la bonne réponse est **Fi
 
 **Le N° de série est toujours rejeté alors qu'il est correct**
 → Ouvrez `index.html`, retrouvez le bon produit (ex: `"ASP-01"`) et vérifiez le champ `serial:"..."` — la tolérance porte sur casse/espaces/tirets/underscores mais pas sur les caractères exotiques (é, ç, ñ…). Utilisez de préférence des caractères ASCII (A–Z, 0–9).
+
+**Le mot-clé SAVVY est rejeté alors qu'il est correct**
+→ Même logique : ouvrez `index.html`, produit concerné, vérifiez le champ `keyword:"..."`. Évitez les accents et les caractères spéciaux dans le mot-clé choisi (préférez `MOTEUR` à `Démarreur`). La casse et les espaces sont ignorés.
