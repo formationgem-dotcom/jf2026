@@ -617,7 +617,31 @@ async function showProduct(productId) {
     </div>
     ${prevHtml}
 
-    <div class="section-title"><span class="step-num">1</span> Votre diagnostic</div>
+    <div class="section-title"><span class="step-num">1</span> N° de série du produit</div>
+    <div class="serial-card">
+      <input type="text" class="serial-input" id="serial-input"
+             placeholder="Saisir le N° de série"
+             autocomplete="off" autocapitalize="characters" spellcheck="false"
+             oninput="updateValidateBtn()" />
+      <div class="serial-hint">
+        📍 Étiquette au dos ou sous l'appareil (ou sur la boîte).<br>
+        Bonne saisie : <strong>+1 pt</strong> · Saisie erronée : <strong>−1 pt</strong>
+      </div>
+    </div>
+
+    <div class="section-title"><span class="step-num">2</span> Mot-clé SAVVY</div>
+    <div class="serial-card" style="border-left-color:#4caf50">
+      <input type="text" class="serial-input" id="keyword-input"
+             placeholder="Saisir le mot-clé trouvé dans SAVVY"
+             autocomplete="off" autocapitalize="characters" spellcheck="false"
+             oninput="updateValidateBtn()" />
+      <div class="serial-hint">
+        📚 Mot-clé caché dans la contribution <strong>SAVVY</strong> associée à ce produit.<br>
+        Bonne saisie : <strong>+1 pt</strong> · Saisie erronée : <strong>−1 pt</strong>
+      </div>
+    </div>
+
+    <div class="section-title"><span class="step-num">3</span> Votre diagnostic</div>
     <div class="answer-buttons">
       <button class="answer-btn btn-filtering" id="btn-ans-F" onclick="selectAnswer('${F}')">
         <span class="icon">✅</span>
@@ -635,30 +659,6 @@ async function showProduct(productId) {
         </span>
         <span class="check"></span>
       </button>
-    </div>
-
-    <div class="section-title"><span class="step-num">2</span> N° de série du produit</div>
-    <div class="serial-card">
-      <input type="text" class="serial-input" id="serial-input"
-             placeholder="Saisir le N° de série"
-             autocomplete="off" autocapitalize="characters" spellcheck="false"
-             oninput="updateValidateBtn()" />
-      <div class="serial-hint">
-        📍 Étiquette au dos ou sous l'appareil (ou sur la boîte).<br>
-        Bonne saisie : <strong>+1 pt</strong> · Saisie erronée : <strong>−1 pt</strong>
-      </div>
-    </div>
-
-    <div class="section-title"><span class="step-num">3</span> Mot-clé SAVVY</div>
-    <div class="serial-card" style="border-left-color:#4caf50">
-      <input type="text" class="serial-input" id="keyword-input"
-             placeholder="Saisir le mot-clé trouvé dans SAVVY"
-             autocomplete="off" autocapitalize="characters" spellcheck="false"
-             oninput="updateValidateBtn()" />
-      <div class="serial-hint">
-        📚 Mot-clé caché dans la contribution <strong>SAVVY</strong> associée à ce produit.<br>
-        Bonne saisie : <strong>+1 pt</strong> · Saisie erronée : <strong>−1 pt</strong>
-      </div>
     </div>
 
     <button class="btn-validate" id="btn-validate" onclick="submitFinal('${productId}')" disabled>
