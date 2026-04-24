@@ -126,6 +126,49 @@ Exemple après :
 
 ---
 
+## ÉTAPE 3 bis — (Optionnel) Ajouter une vidéo symptôme via Vimeo
+
+Certains produits peuvent être accompagnés d'une **courte vidéo du symptôme** (ex. aspirateur qui fume, TV avec lignes verticales). Une vignette cliquable s'affiche alors dans la fiche produit — au clic, la vidéo s'ouvre en modale plein écran avec lecteur Vimeo natif.
+
+### 3bis.1 Uploader la vidéo sur Vimeo (compte gratuit)
+
+1. Créez un compte sur **[vimeo.com](https://vimeo.com)** (plan gratuit = 500 Mo d'upload par semaine).
+2. Cliquez **"+ New video"** → **"Upload"** → sélectionnez votre fichier `.mp4`.
+3. Une fois l'upload terminé, ouvrez la vidéo et allez dans **Settings → Privacy**.
+4. Réglez **"Who can watch"** sur **"Unlisted"** (Non répertoriée) — la vidéo devient invisible en recherche mais intégrable partout via son lien direct.
+5. Dans **"Where can this be embedded?"**, laissez **"Anywhere"**.
+6. Notez l'**ID numérique** de la vidéo, visible dans son URL : `https://vimeo.com/1185440837` → ID = `1185440837`.
+
+### 3bis.2 Remplir les champs vidéo dans `index.html`
+
+Ouvrez `index.html`, retrouvez le produit concerné (ex. `"ASP-03"`) et ajoutez les champs `vimeoId` et `videoRatio` :
+
+```js
+"ASP-03":{workshop:"asp", type:"Aspirateur traîneau", serial:"SN-ASP-003", keyword:"MOT-ASP-003",
+  vimeoId:"1185440837", videoRatio:"1/1",   // ← vidéo carrée Vimeo
+  symptom:"Une odeur de brûlé se dégage de l'appareil lorsqu'il fonctionne.",
+  correct:R, points:1, explanation:"..."}
+```
+
+Champs disponibles :
+
+| Champ | Obligatoire | Valeur | Usage |
+|-------|:---:|-------|-------|
+| `vimeoId` | Oui | `"1185440837"` | ID numérique Vimeo (sans l'URL) |
+| `videoRatio` | Non | `"1/1"` ou `"16/9"` | Format de la vignette. Défaut : `"16/9"` |
+| `videoPoster` | Non | URL vignette personnalisée | Par défaut, vignette auto-générée via `vumbnail.com/<id>.jpg` |
+
+> 💡 **Les produits sans vidéo** (aucun champ `vimeoId`) affichent uniquement le texte client, exactement comme avant. Aucune régression.
+> 🎬 **Bonne pratique** : limitez chaque vidéo à 15-45 secondes et un format carré (1:1) ou vertical — plus lisible sur smartphone après scan QR.
+
+### 3bis.3 Tester la vidéo
+
+1. Après avoir sauvegardé `index.html`, ouvrez la fiche du produit (ex. `?p=ASP-03`).
+2. La vignette doit apparaître au-dessus de la phrase client, avec un bouton Play central.
+3. Au clic, la vidéo s'ouvre en modale — elle se ferme en cliquant hors de la vidéo, sur la croix ✕, ou avec la touche Échap.
+
+---
+
 ## ÉTAPE 4 — Mettre en ligne sur GitHub Pages
 
 ### 4.1 Créer un compte GitHub (si vous n'en avez pas)

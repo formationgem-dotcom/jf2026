@@ -75,6 +75,27 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 .symptom-label { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
 .symptom-text { font-size: 16px; line-height: 1.6; color: var(--white); font-style: italic; }
 
+/* VIDEO THUMBNAIL (vignette cliquable dans la symptom-card) */
+.video-thumb { position: relative; width: 100%; background: #000; border-radius: 10px; overflow: hidden; cursor: pointer; margin-bottom: 14px; aspect-ratio: 16/9; }
+.video-thumb.square { aspect-ratio: 1/1; }
+.video-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.video-thumb::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.55)); transition: background .2s; pointer-events: none; }
+.video-thumb:hover::after, .video-thumb:active::after { background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)); }
+.video-thumb .play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,0.95); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); transition: transform .15s; z-index: 2; }
+.video-thumb:hover .play-btn, .video-thumb:active .play-btn { transform: translate(-50%,-50%) scale(1.08); }
+.video-thumb .play-btn::before { content: ""; display: block; width: 0; height: 0; border-style: solid; border-width: 14px 0 14px 22px; border-color: transparent transparent transparent var(--navy); margin-left: 5px; }
+.video-thumb .video-caption { position: absolute; bottom: 10px; left: 12px; right: 12px; color: #fff; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 2px 6px rgba(0,0,0,0.9); z-index: 2; text-align: center; }
+
+/* VIDEO MODAL */
+.video-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+.video-modal.show { display: flex; }
+.video-modal-inner { position: relative; width: 100%; max-width: 720px; }
+.video-modal-iframe-wrap { position: relative; padding-top: 100%; background: #000; border-radius: 12px; overflow: hidden; }
+.video-modal-iframe-wrap.r-16-9 { padding-top: 56.25%; }
+.video-modal-iframe-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+.video-modal-close { position: absolute; top: -44px; right: 0; background: rgba(255,255,255,0.15); color: #fff; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 22px; font-weight: 700; cursor: pointer; line-height: 1; }
+.video-modal-close:hover { background: rgba(255,255,255,0.3); }
+
 /* SECTION TITLES */
 .section-title { font-size: 12px; font-weight: 800; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 10px; display: flex; align-items: center; gap: 8px; }
 .section-title .step-num { background: var(--gold); color: var(--navy); width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; }
@@ -210,6 +231,12 @@ const TEAMS = Array.from({length: 30}, (_, i) => ({
    Remplacer chaque "SN-XXX-000" par le vrai N° de série du produit
    physiquement présent à l'atelier (étiquette au dos / sous l'appareil).
    La saisie est insensible à la casse et aux espaces.
+
+   🎬 VIDÉO SYMPTÔME (optionnel, hébergée sur Vimeo non répertorié) :
+     - vimeoId    : ID numérique de la vidéo Vimeo (ex. "1185440837")
+     - videoRatio : "1/1" pour carré, "16/9" (défaut) pour paysage
+     - videoPoster: URL vignette custom (sinon récup auto via vumbnail.com)
+   Omettre ces champs pour un produit sans vidéo.
 ═══════════════════════════════════════════ */
 const F = "Filtering", R = "Réparation";
 const PRODUCTS = {
@@ -221,6 +248,7 @@ const PRODUCTS = {
     symptom:"Mon sac se remplit extrêmement vite après seulement une utilisation ! Il y a forcément un problème.",
     correct:F,points:2,explanation:"Sac saturé — le sac doit simplement être remplacé. L'aspirateur fonctionne normalement."},
   "ASP-03":{workshop:"asp",type:"Aspirateur traîneau", serial:"SN-ASP-003", keyword:"MOT-ASP-003",
+    vimeoId:"1185440837", videoRatio:"1/1",
     symptom:"Une odeur de brûlé se dégage de l'appareil lorsqu'il fonctionne.",
     correct:R,points:1,explanation:"Odeur de brûlé = moteur défaillant. Envoi en atelier de réparation obligatoire."},
   "ASP-04":{workshop:"asp",type:"Aspirateur traîneau", serial:"SN-ASP-004", keyword:"MOT-ASP-004",
@@ -261,51 +289,51 @@ const PRODUCTS = {
     correct:F,points:2,explanation:"Filtre HEPA bouché et bac plein — nettoyer le filtre et vider le bac. Résolu en magasin."},
 
   /* ──────── ATELIER BROYEURS CAFÉ ──────── */
-  "CAF-01":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-001", keyword:"MOT-CAF-001",
+  "CAF-01":{workshop:"caf",type:"Moulin à café Delonghi", serial:"SN-CAF-001", keyword:"MOT-CAF-001",
     symptom:"Mon moulin ne démarre pas du tout. Pourtant il est bien branché sur la prise.",
-    correct:F,points:2,explanation:"Bac non verrouillé — la sécurité empêche le démarrage. Verrouiller le bac, problème résolu."},
-  "CAF-02":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-002", keyword:"MOT-CAF-002",
+    correct:F,points:2,explanation:"Bac non verrouillé — la sécurité empêche le démarrage. Verrouiller le bac à café, le moulin redémarre immédiatement."},
+  "CAF-02":{workshop:"caf",type:"Moulin à café Krups", serial:"SN-CAF-002", keyword:"MOT-CAF-002",
     symptom:"Mon café est beaucoup trop grossier. On dirait du café pour cafetière filtre.",
-    correct:F,points:2,explanation:"Réglage de mouture trop grossier — ajuster le niveau de mouture. Pas de panne."},
-  "CAF-03":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-003", keyword:"MOT-CAF-003",
+    correct:F,points:2,explanation:"Réglage de mouture trop grossier — ajuster le niveau de mouture sur la molette de réglage. Pas de panne."},
+  "CAF-03":{workshop:"caf",type:"Moulin à café Baratza", serial:"SN-CAF-003", keyword:"MOT-CAF-003",
     symptom:"Il y a de la poudre de café partout autour de l'appareil après chaque utilisation.",
-    correct:F,points:2,explanation:"Électricité statique (phénomène normal) — explication au client, pas de défaut produit."},
-  "CAF-04":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-004", keyword:"MOT-CAF-004",
+    correct:F,points:2,explanation:"Électricité statique — phénomène normal sur ce type d'appareil. Expliquer au client et conseiller l'humidification légère des grains avant mouture."},
+  "CAF-04":{workshop:"caf",type:"Cafetière à grain Delonghi", serial:"SN-CAF-004", keyword:"MOT-CAF-004",
     symptom:"Mon café a un goût amer et comme brûlé. Ce n'est pas du tout agréable à boire.",
-    correct:F,points:2,explanation:"Détartrage nécessaire + mouture trop fine — entretien et réglage. Résolu en magasin."},
-  "CAF-05":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-005", keyword:"MOT-CAF-005",
+    correct:F,points:2,explanation:"Détartrage nécessaire + mouture trop fine — lancer un cycle de détartrage et ajuster la mouture. Résolu en magasin."},
+  "CAF-05":{workshop:"caf",type:"Moulin à café Eureka", serial:"SN-CAF-005", keyword:"MOT-CAF-005",
     symptom:"Mon moulin s'arrête tout seul en pleine mouture. Je dois attendre avant de recommencer.",
-    correct:F,points:2,explanation:"Protection thermique activée (utilisation continue excessive) — laisser refroidir avant de recommencer."},
-  "CAF-06":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-006", keyword:"MOT-CAF-006",
+    correct:F,points:2,explanation:"Protection thermique activée (utilisation continue excessive) — laisser refroidir 10-15 min entre deux utilisations prolongées. Appareil fonctionnel."},
+  "CAF-06":{workshop:"caf",type:"Moulin à café Niche", serial:"SN-CAF-006", keyword:"MOT-CAF-006",
     symptom:"J'entends un bruit de craquement anormal depuis que j'ai acheté un nouveau paquet de café.",
-    correct:F,points:2,explanation:"Corps étranger (caillou, bois) dans les grains — vider et inspecter la trémie."},
-  "CAF-07":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-007", keyword:"MOT-CAF-007",
+    correct:F,points:2,explanation:"Corps étranger (caillou, morceau de bois) dans les grains — vider la trémie, inspecter les grains et retirer le corps étranger."},
+  "CAF-07":{workshop:"caf",type:"Moulin à café Krups", serial:"SN-CAF-007", keyword:"MOT-CAF-007",
     symptom:"Le café ne sort plus du tout. Il y a un bruit bizarre et la lame ne semble plus tourner.",
-    correct:R,points:1,explanation:"Lame fissurée ou cassée — envoi en atelier de réparation obligatoire."},
-  "CAF-08":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-008", keyword:"MOT-CAF-008",
+    correct:R,points:1,explanation:"Lame fissurée ou cassée — inspection visuelle confirme la casse. Envoi en atelier de réparation obligatoire."},
+  "CAF-08":{workshop:"caf",type:"Cafetière à grain Philips", serial:"SN-CAF-008", keyword:"MOT-CAF-008",
     symptom:"Plus rien ne coule de ma cafetière depuis ce matin. Le voyant est allumé normalement.",
-    correct:F,points:2,explanation:"Passage d'eau bouché par le calcaire — détartrage de la cafetière. Résolu en magasin."},
-  "CAF-09":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-009", keyword:"MOT-CAF-009",
+    correct:F,points:2,explanation:"Passage d'eau bouché par le calcaire — lancer un cycle de détartrage intensif. Résolu en magasin."},
+  "CAF-09":{workshop:"caf",type:"Cafetière à grain Jura", serial:"SN-CAF-009", keyword:"MOT-CAF-009",
     symptom:"De l'eau s'écoule par le dessous de ma cafetière quand elle chauffe.",
-    correct:R,points:1,explanation:"Joint de résistance défaillant — envoi en atelier de réparation."},
-  "CAF-10":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-010", keyword:"MOT-CAF-010",
+    correct:R,points:1,explanation:"Joint de résistance défaillant — fuite confirmée sous pression. Envoi en atelier de réparation obligatoire."},
+  "CAF-10":{workshop:"caf",type:"Moulin à café Baratza", serial:"SN-CAF-010", keyword:"MOT-CAF-010",
     symptom:"La mouture est très irrégulière : moitié poudre très fine, moitié grains entiers.",
-    correct:R,points:1,explanation:"Meules usées — remplacement des meules nécessaire. Envoi en atelier."},
-  "CAF-11":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-011", keyword:"MOT-CAF-011",
+    correct:R,points:1,explanation:"Meules usées — test de mouture confirme l'irrégularité. Remplacement des meules en atelier obligatoire."},
+  "CAF-11":{workshop:"caf",type:"Cafetière à grain Saeco", serial:"SN-CAF-011", keyword:"MOT-CAF-011",
     symptom:"Mon café est trop léger et peu concentré. Pourtant je mets autant de grains qu'avant.",
-    correct:F,points:2,explanation:"Dosage insuffisant ou mouture inadaptée — ajustement du dosage et de la mouture."},
-  "CAF-12":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-012", keyword:"MOT-CAF-012",
+    correct:F,points:2,explanation:"Dosage insuffisant ou mouture inadaptée — ajustement du dosage et de la mouture. Résolu en magasin."},
+  "CAF-12":{workshop:"caf",type:"Cafetière à grain Delonghi", serial:"SN-CAF-012", keyword:"MOT-CAF-012",
     symptom:"Le voyant d'erreur s'allume tout de suite au démarrage. Je ne comprends pas pourquoi.",
-    correct:F,points:2,explanation:"Réservoir d'eau mal positionné — repositionner correctement le réservoir. Pas de panne."},
-  "CAF-13":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-013", keyword:"MOT-CAF-013",
+    correct:F,points:2,explanation:"Réservoir d'eau mal positionné — retirer puis repositionner fermement le réservoir. Voyant éteint, pas de panne."},
+  "CAF-13":{workshop:"caf",type:"Moulin à café Krups", serial:"SN-CAF-013", keyword:"MOT-CAF-013",
     symptom:"Après la mouture, il reste des grains entiers dans la trémie. Ils ne sont pas broyés.",
-    correct:F,points:2,explanation:"Surcharge de grains dans la trémie — réduire la quantité de grains à moudre."},
-  "CAF-14":{workshop:"caf",type:"Cafetière à grain", serial:"SN-CAF-014", keyword:"MOT-CAF-014",
+    correct:F,points:2,explanation:"Surcharge de grains dans la trémie — réduire la quantité de grains à moudre par cycle."},
+  "CAF-14":{workshop:"caf",type:"Cafetière à grain Melitta", serial:"SN-CAF-014", keyword:"MOT-CAF-014",
     symptom:"Mon café n'a plus aucun arôme depuis quelques jours. Il est complètement insipide.",
-    correct:F,points:2,explanation:"Grains trop vieux ou mal conservés — conseiller le client sur la fraîcheur et la conservation."},
-  "CAF-15":{workshop:"caf",type:"Moulin à café", serial:"SN-CAF-015", keyword:"MOT-CAF-015",
+    correct:F,points:2,explanation:"Grains trop vieux ou mal conservés — conseiller le client sur la fraîcheur et la conservation des grains (boîte hermétique, à l'abri de la lumière)."},
+  "CAF-15":{workshop:"caf",type:"Moulin à café Delonghi", serial:"SN-CAF-015", keyword:"MOT-CAF-015",
     symptom:"Il y a un dépôt de poudre de café sur toutes les surfaces autour de l'appareil.",
-    correct:F,points:2,explanation:"Résidu de café et électricité statique — nettoyage et explication au client. Phénomène normal."},
+    correct:F,points:2,explanation:"Résidu de café et électricité statique — nettoyage et explication du phénomène normal au client. Pas de panne."},
 
   /* ──────── ATELIER MULTIMÉDIA ──────── */
   "MUL-01":{workshop:"mul",type:"TV OLED 55\"", serial:"SN-MUL-001", keyword:"MOT-MUL-001",
@@ -354,6 +382,44 @@ const PRODUCTS = {
     symptom:"Le son saute en permanence pendant la lecture, comme si l'aiguille glissait sur le disque.",
     correct:F,points:2,explanation:"Réglage contrepoids / anti-skating ou pointe encrassée — entretien et calibrage en magasin."},
 };
+
+/* ═══════════════════════════════════════════
+   VIDEO MODAL (vignette → lecteur Vimeo plein écran)
+═══════════════════════════════════════════ */
+function openVideoModal(vimeoId, ratio) {
+  let modal = document.getElementById('video-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'video-modal';
+    modal.className = 'video-modal';
+    modal.innerHTML = `
+      <div class="video-modal-inner">
+        <button class="video-modal-close" onclick="closeVideoModal()" aria-label="Fermer la vidéo">×</button>
+        <div class="video-modal-iframe-wrap" id="video-modal-wrap"></div>
+      </div>`;
+    modal.addEventListener('click', function(e){ if(e.target === modal) closeVideoModal(); });
+    document.body.appendChild(modal);
+  }
+  const wrap = modal.querySelector('#video-modal-wrap');
+  wrap.className = 'video-modal-iframe-wrap' + (ratio === '16/9' ? ' r-16-9' : '');
+  wrap.innerHTML = `<iframe
+    src="https://player.vimeo.com/video/${vimeoId}?autoplay=1&badge=0&autopause=0&player_id=0&playsinline=1"
+    allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+    allowfullscreen></iframe>`;
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+  document.addEventListener('keydown', videoModalEscHandler);
+}
+function closeVideoModal() {
+  const modal = document.getElementById('video-modal');
+  if (!modal) return;
+  modal.classList.remove('show');
+  const wrap = modal.querySelector('#video-modal-wrap');
+  if (wrap) wrap.innerHTML = ''; // stoppe la lecture immédiatement
+  document.body.style.overflow = '';
+  document.removeEventListener('keydown', videoModalEscHandler);
+}
+function videoModalEscHandler(e) { if (e.key === 'Escape') closeVideoModal(); }
 
 /* ═══════════════════════════════════════════
    APP
@@ -613,6 +679,18 @@ async function showProduct(productId) {
     <div class="product-type">${prod.type}</div>
     <div class="symptom-card ${meta.cls}">
       <div class="symptom-label">📢 Ce que dit le client</div>
+      ${prod.vimeoId ? `
+        <div class="video-thumb ${prod.videoRatio === '1/1' ? 'square' : ''}"
+             onclick="openVideoModal('${prod.vimeoId}','${prod.videoRatio || '16/9'}')"
+             role="button" tabindex="0"
+             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openVideoModal('${prod.vimeoId}','${prod.videoRatio || '16/9'}')}">
+          <img src="${prod.videoPoster || `https://vumbnail.com/${prod.vimeoId}.jpg`}"
+               alt="Vignette vidéo symptôme"
+               onerror="this.style.display='none'" />
+          <div class="play-btn"></div>
+          <div class="video-caption">▶ Voir la vidéo du symptôme</div>
+        </div>
+      ` : ''}
       <div class="symptom-text">« ${prod.symptom} »</div>
     </div>
     ${prevHtml}
