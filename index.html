@@ -764,7 +764,8 @@ async function showProduct(productId) {
     ? `<div style="background:rgba(255,80,80,.08);border:2px solid var(--red);border-radius:14px;padding:18px 16px;margin-top:8px;text-align:center;">
         <div style="font-size:28px;margin-bottom:8px;">🔒</div>
         <div style="font-weight:800;font-size:15px;color:var(--red);margin-bottom:6px;">Atelier déjà validé</div>
-        <div style="font-size:13px;color:#aaa;">Votre équipe a déjà soumis une réponse pour ce produit.<br>Il n'est pas possible de rejouer un atelier.</div>
+        <div style="font-size:13px;color:#aaa;margin-bottom:14px;">Votre équipe a déjà soumis une réponse pour ce produit.<br>Il n'est pas possible de rejouer un atelier.</div>
+        <button class="btn-next" onclick="showHome()">← Retour à l'accueil</button>
       </div>`
     : `<div class="section-title"><span class="step-num">1</span> N° de série du produit</div>
     <div class="serial-card">
