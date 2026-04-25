@@ -1135,46 +1135,78 @@ function closeQrScanner() {
   if (modal) modal.classList.remove('show');
 }
 
-function _qrScanTick() {
+let _qrLastTick = 0; // throttle : scan toutes les 250 ms max
+
+function _qrScanTick(ts) {
   if (!_qrActive) return;
+  // Throttle CPU : ne traiter que ~4 fois/sec sur mobile
+  if (ts - _qrLastTick < 250) { _qrRaf = requestAnimationFrame(_qrScanTick); return; }
+  _qrLastTick = ts;
+
   const video = document.getElementById('qr-video');
   const canvas = document.getElementById('qr-canvas');
   if (!video || !canvas || video.readyState < 2 || video.videoWidth === 0) {
     _qrRaf = requestAnimationFrame(_qrScanTick); return;
   }
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+
+  // Réduire la résolution pour gagner en performance sur mobile
+  const MAX = 640;
+  const scale = Math.min(1, MAX / Math.max(video.videoWidth, video.videoHeight));
+  canvas.width  = Math.round(video.videoWidth  * scale);
+  canvas.height = Math.round(video.videoHeight * scale);
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-  let result = null;
-  if (typeof jsQR === 'function') {
-    result = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+  if (typeof jsQR !== 'function') {
+    const st = document.getElementById('qr-status');
+    if (st) st.textContent = '⚠️ Bibliothèque QR non chargée — vérifiez la connexion';
+    _qrRaf = requestAnimationFrame(_qrScanTick); return;
   }
+
+  const result = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'attemptBoth' });
 
   if (result && result.data) {
     const raw = result.data.trim();
     let productId = null;
-    // Cherche ?p=XXX dans une URL
+
+    // ── Format 1 : URL avec ?p=ASP-03 ────────────────────────────────
     try {
       const u = new URL(raw);
-      productId = u.searchParams.get('p');
-    } catch(e) {
-      // Peut-être directement un ID produit (ex: ASP-03)
-      if (PRODUCTS[raw.toUpperCase()]) productId = raw.toUpperCase();
+      const p = u.searchParams.get('p');
+      if (p && PRODUCTS[p.toUpperCase()]) productId = p.toUpperCase();
+    } catch(e) {}
+
+    // ── Format 2 : texte multiligne "Code: ASP-03" (fichiers QR actuels) ──
+    if (!productId) {
+      const m = raw.match(/Code\s*[:\-]\s*([A-Z]{2,3}-\d{2})/i);
+      if (m) { const p = m[1].toUpperCase(); if (PRODUCTS[p]) productId = p; }
     }
-    if (productId && PRODUCTS[productId]) {
+
+    // ── Format 3 : pipe-séparé "Aspirateur | ASP-03 | Produit: …" ────
+    if (!productId) {
+      const parts = raw.split('|').map(s => s.trim());
+      for (const part of parts) {
+        const p = part.toUpperCase();
+        if (PRODUCTS[p]) { productId = p; break; }
+      }
+    }
+
+    // ── Format 4 : ID direct "ASP-03" ────────────────────────────────
+    if (!productId) {
+      const p = raw.toUpperCase().replace(/\s/g,'');
+      if (PRODUCTS[p]) productId = p;
+    }
+
+    if (productId) {
       closeQrScanner();
-      // Vibration légère si dispo
-      if (navigator.vibrate) navigator.vibrate(60);
+      if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
       showProduct(productId);
-      // Mise à jour URL sans rechargement
       history.replaceState(null, '', '?p=' + productId);
       return;
     } else {
-      const status = document.getElementById('qr-status');
-      if (status) status.textContent = '⚠️ QR code non reconnu, continuez…';
+      const st = document.getElementById('qr-status');
+      if (st) st.textContent = '⚠️ QR lu mais non reconnu — cherche un QR produit';
     }
   }
 
