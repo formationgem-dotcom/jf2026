@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Filtering Game — JF2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
 <style>
@@ -57,7 +58,8 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 .home-links { margin-top: 32px; display: flex; flex-direction: column; gap: 12px; }
 .btn-link { display: block; padding: 14px; border-radius: 12px; text-align: center; font-size: 14px; font-weight: 600; cursor: pointer; border: none; text-decoration: none; }
 .btn-leaderboard { background: var(--gold); color: var(--navy); }
-.btn-outline { background: transparent; color: var(--white); border: 2px solid var(--navy2); }
+.btn-outline { background: rgba(255,255,255,.13); color: var(--white); border: 2px solid rgba(255,255,255,.45); font-weight: 700; }
+.btn-outline:hover, .btn-outline:active { background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.7); }
 
 /* TEAM SELECT */
 .screen-title { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
@@ -184,6 +186,28 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: var(--white); padding: 12px 20px; border-radius: 10px; font-size: 14px; z-index: 100; opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
 .toast.show { opacity: 1; }
 
+/* QR SCANNER */
+.btn-camera { display: inline-flex; align-items: center; gap: 10px; margin: 18px auto 0; padding: 14px 28px; background: var(--gold); color: var(--navy); border: none; border-radius: 50px; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 18px rgba(201,162,39,.4); transition: transform .15s, box-shadow .15s; }
+.btn-camera:hover, .btn-camera:active { transform: scale(.96); box-shadow: 0 2px 8px rgba(201,162,39,.3); }
+.btn-camera svg { width: 22px; height: 22px; flex-shrink: 0; }
+
+.qr-modal { position: fixed; inset: 0; background: rgba(0,0,0,.96); z-index: 500; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
+.qr-modal.show { display: flex; }
+.qr-close { position: absolute; top: 18px; right: 18px; background: rgba(255,255,255,.18); color: #fff; border: none; border-radius: 50%; width: 42px; height: 42px; font-size: 22px; font-weight: 700; cursor: pointer; }
+.qr-close:hover { background: rgba(255,255,255,.3); }
+.qr-viewport { position: relative; width: min(88vw, 340px); aspect-ratio: 1/1; overflow: hidden; border-radius: 20px; }
+.qr-viewport video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.qr-overlay { position: absolute; inset: 0; border: 3px solid rgba(201,162,39,.6); border-radius: 20px; pointer-events: none; }
+.qr-corner { position: absolute; width: 30px; height: 30px; border-color: var(--gold); border-style: solid; }
+.qr-corner.tl { top: 14px; left: 14px; border-width: 3px 0 0 3px; border-radius: 6px 0 0 0; }
+.qr-corner.tr { top: 14px; right: 14px; border-width: 3px 3px 0 0; border-radius: 0 6px 0 0; }
+.qr-corner.bl { bottom: 14px; left: 14px; border-width: 0 0 3px 3px; border-radius: 0 0 0 6px; }
+.qr-corner.br { bottom: 14px; right: 14px; border-width: 0 3px 3px 0; border-radius: 0 0 6px 0; }
+.qr-scan-line { position: absolute; left: 10%; right: 10%; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); border-radius: 2px; animation: qrScan 2s ease-in-out infinite; }
+@keyframes qrScan { 0%,100% { top: 15%; opacity: .8; } 50% { top: 80%; opacity: 1; } }
+.qr-hint { color: #ccc; font-size: 14px; text-align: center; line-height: 1.5; padding: 0 20px; }
+.qr-status { font-size: 13px; color: var(--gold); min-height: 20px; text-align: center; }
+
 @media (prefers-color-scheme: light) {
   body { background: #f0f4f8; }
   #app { background: #f0f4f8; }
@@ -197,6 +221,8 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
   .already-answered { background: var(--white); color: var(--text); }
   .result-explanation { background: var(--white); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
   .expl-text { color: var(--text); }
+  .btn-outline { background: var(--white); color: var(--navy); border: 2px solid #bbb; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .btn-outline:hover, .btn-outline:active { background: var(--blue-l); border-color: var(--blue2); color: var(--blue); }
   .screen-sub { color: #666; }
   .product-type { color: #666; }
   .answer-btn { background: var(--white); color: var(--navy); box-shadow: 0 1px 4px rgba(0,0,0,.06); }
@@ -211,6 +237,23 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
   <div class="loading"><div class="spinner"></div><p>Chargement...</p></div>
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- QR SCANNER MODAL -->
+<div class="qr-modal" id="qr-modal">
+  <button class="qr-close" onclick="closeQrScanner()" aria-label="Fermer le scanner">✕</button>
+  <div class="qr-viewport">
+    <video id="qr-video" autoplay playsinline muted></video>
+    <canvas id="qr-canvas" style="display:none"></canvas>
+    <div class="qr-overlay"></div>
+    <div class="qr-corner tl"></div>
+    <div class="qr-corner tr"></div>
+    <div class="qr-corner bl"></div>
+    <div class="qr-corner br"></div>
+    <div class="qr-scan-line"></div>
+  </div>
+  <p class="qr-hint">Pointez la caméra vers le QR code<br>du produit en atelier</p>
+  <div class="qr-status" id="qr-status">Démarrage de la caméra…</div>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════
@@ -509,6 +552,13 @@ function showHome() {
       <div class="home-icon">⚡</div>
       <div class="home-title">Filtering Game</div>
       <div class="home-subtitle">Scannez le QR code d'un produit en atelier pour commencer votre diagnostic.</div>
+      <button class="btn-camera" onclick="openQrScanner()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        Scanner un QR code
+      </button>
       ${teamInfo}
       <div class="home-links">
         <a class="btn-link btn-leaderboard" href="leaderboard.html">🏆 Voir le classement</a>
@@ -1038,6 +1088,97 @@ function showReglement() {
     </div>
     <button class="btn-link btn-outline" style="margin-bottom:24px" onclick="showHome()">← Retour à l'accueil</button>
   </div>`);
+}
+
+/* ═══════════════════════════════════════════
+   QR SCANNER (jsQR + getUserMedia)
+═══════════════════════════════════════════ */
+let _qrStream = null, _qrRaf = null, _qrActive = false;
+
+function openQrScanner() {
+  const modal = document.getElementById('qr-modal');
+  const status = document.getElementById('qr-status');
+  if (!modal) return;
+  _qrActive = true;
+  modal.classList.add('show');
+  status.textContent = 'Démarrage de la caméra…';
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    status.textContent = '📷 Caméra non disponible sur cet appareil';
+    return;
+  }
+
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } })
+    .then(stream => {
+      if (!_qrActive) { stream.getTracks().forEach(t => t.stop()); return; }
+      _qrStream = stream;
+      const video = document.getElementById('qr-video');
+      video.srcObject = stream;
+      video.play().then(() => {
+        status.textContent = 'Caméra active — cherche un QR code…';
+        _qrRaf = requestAnimationFrame(_qrScanTick);
+      });
+    })
+    .catch(err => {
+      console.warn('QR cam:', err);
+      status.textContent = '⛔ Accès caméra refusé ou indisponible';
+    });
+}
+
+function closeQrScanner() {
+  _qrActive = false;
+  if (_qrRaf) { cancelAnimationFrame(_qrRaf); _qrRaf = null; }
+  if (_qrStream) { _qrStream.getTracks().forEach(t => t.stop()); _qrStream = null; }
+  const video = document.getElementById('qr-video');
+  if (video) { video.srcObject = null; }
+  const modal = document.getElementById('qr-modal');
+  if (modal) modal.classList.remove('show');
+}
+
+function _qrScanTick() {
+  if (!_qrActive) return;
+  const video = document.getElementById('qr-video');
+  const canvas = document.getElementById('qr-canvas');
+  if (!video || !canvas || video.readyState < 2 || video.videoWidth === 0) {
+    _qrRaf = requestAnimationFrame(_qrScanTick); return;
+  }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+  let result = null;
+  if (typeof jsQR === 'function') {
+    result = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+  }
+
+  if (result && result.data) {
+    const raw = result.data.trim();
+    let productId = null;
+    // Cherche ?p=XXX dans une URL
+    try {
+      const u = new URL(raw);
+      productId = u.searchParams.get('p');
+    } catch(e) {
+      // Peut-être directement un ID produit (ex: ASP-03)
+      if (PRODUCTS[raw.toUpperCase()]) productId = raw.toUpperCase();
+    }
+    if (productId && PRODUCTS[productId]) {
+      closeQrScanner();
+      // Vibration légère si dispo
+      if (navigator.vibrate) navigator.vibrate(60);
+      showProduct(productId);
+      // Mise à jour URL sans rechargement
+      history.replaceState(null, '', '?p=' + productId);
+      return;
+    } else {
+      const status = document.getElementById('qr-status');
+      if (status) status.textContent = '⚠️ QR code non reconnu, continuez…';
+    }
+  }
+
+  _qrRaf = requestAnimationFrame(_qrScanTick);
 }
 
 init();
