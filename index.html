@@ -23,10 +23,28 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 /* HEADER */
 .header { background: var(--navy2); padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,.3); position: sticky; top: 0; z-index: 10; }
 .header-left { display: flex; align-items: center; gap: 10px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
 .header-logo { height: 36px; border-radius: 6px; object-fit: contain; }
+.header-academie { height: 32px; object-fit: contain; }
 .header-title { font-size: 14px; font-weight: 700; letter-spacing: .5px; }
 .header-team { font-size: 12px; background: var(--gold); color: var(--navy); padding: 4px 10px; border-radius: 20px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .header-team:hover { opacity: .85; }
+
+/* FOOTER */
+.site-footer { text-align: center; padding: 20px 16px 28px; font-size: 11px; color: #666; line-height: 1.6; border-top: 1px solid rgba(255,255,255,.07); margin-top: 8px; }
+.site-footer img { height: 28px; display: block; margin: 8px auto 0; opacity: .75; }
+
+/* RÈGLEMENT */
+.reglement-content { background: var(--navy2); border-radius: 14px; padding: 20px; margin-bottom: 16px; line-height: 1.7; font-size: 14px; }
+.reglement-content h2 { font-size: 16px; color: var(--gold); margin: 20px 0 8px; }
+.reglement-content h3 { font-size: 14px; color: #ccc; margin: 14px 0 6px; }
+.reglement-content table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+.reglement-content th { background: rgba(255,255,255,.1); padding: 7px 10px; text-align: left; }
+.reglement-content td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,.07); }
+.reglement-content blockquote { border-left: 3px solid var(--gold); padding: 8px 14px; margin: 10px 0; color: #bbb; font-size: 13px; background: rgba(201,162,39,.07); border-radius: 0 8px 8px 0; }
+.reglement-content hr { border: none; border-top: 1px solid rgba(255,255,255,.1); margin: 16px 0; }
+.reglement-content ul { padding-left: 20px; }
+.reglement-content li { margin-bottom: 4px; }
 
 /* CONTENT */
 .content { flex: 1; padding: 20px 16px 32px; }
@@ -461,7 +479,10 @@ function header(showTeam = true) {
       <img src="Logo JF2026.jpg" alt="JF2026" class="header-logo" onerror="this.style.display='none'">
       <span class="header-title">⚡ Filtering Game</span>
     </div>
-    ${showTeam ? team : ''}
+    <div class="header-right">
+      ${showTeam ? team : ''}
+      <img src="academie.png" alt="Académie Fnac Darty" class="header-academie" onerror="this.style.display='none'">
+    </div>
   </div>`;
 }
 
@@ -491,10 +512,17 @@ function showHome() {
       ${teamInfo}
       <div class="home-links">
         <a class="btn-link btn-leaderboard" href="leaderboard.html">🏆 Voir le classement</a>
+        <button class="btn-link btn-outline" onclick="showReglement()">📜 Règlement du jeu</button>
         ${!currentTeam
           ? `<button class="btn-link btn-outline" onclick="showTeamSelect()">Sélectionner mon équipe</button>`
           : ''}
       </div>
+    </div>
+    <div class="site-footer">
+      Ce jeu a été réalisé pour l'évènement<br>
+      <strong style="color:#ccc">Les Journées du Filtering 2026</strong><br>
+      par l'Académie FNAC DARTY
+      <img src="academie.png" alt="Académie Fnac Darty" onerror="this.style.display='none'">
     </div>
   </div>`);
 }
@@ -903,6 +931,112 @@ function showResult(prod, answer, diagCorrect, diagScore, serialInput, serialCor
 
       <button class="btn-next" onclick="showHome()">← Retour à l'accueil</button>
     </div>
+  </div>`);
+}
+
+function showReglement() {
+  setApp(`${header(true)}
+  <div class="content">
+    <div class="screen-title">📜 Règlement du jeu</div>
+    <div class="screen-sub">Escape Gamme — Journée du Filtering 2026</div>
+    <div class="reglement-content">
+      <h2>🎯 L'objectif</h2>
+      <p>Vous incarnez une équipe SAV / Magasin face à <strong>45 cas clients</strong>. Pour chaque cas, vous devez prendre <strong>la bonne décision d'orientation</strong> :</p>
+      <ul>
+        <li>✅ <strong>Filtering Magasin</strong> → la panne peut être traitée en magasin, sans envoi SAV</li>
+        <li>✅ <strong>Envoi SAV</strong> → le produit nécessite une prise en charge atelier</li>
+      </ul>
+      <p><strong>Celui qui oriente juste, vite, et avec précision gagne.</strong></p>
+      <hr>
+      <h2>👥 Les équipes</h2>
+      <ul>
+        <li>Équipes de <strong>2 à 3 personnes</strong> (techniciens SAV, vendeurs, chefs de rayon — mixez les profils)</li>
+        <li>Chaque équipe choisit <strong>un nom</strong> au moment de l'inscription sur la plateforme</li>
+        <li>L'équipe reste la même du début à la fin de la journée</li>
+      </ul>
+      <hr>
+      <h2>🧩 Les ateliers</h2>
+      <table>
+        <tr><th>Atelier</th><th>Univers</th><th>Cas</th></tr>
+        <tr><td>☕ CAF</td><td>Broyeurs à café</td><td>15</td></tr>
+        <tr><td>🌀 ASP</td><td>Aspirateurs</td><td>15</td></tr>
+        <tr><td>📺 MUL</td><td>Multimédia</td><td>15</td></tr>
+      </table>
+      <p><strong>Total : 45 cas clients</strong> à traiter dans le temps imparti.</p>
+      <hr>
+      <h2>🔁 Comment se déroule un cas</h2>
+      <p>Sur chaque produit exposé se trouve un <strong>QR Code</strong>. Voici la séquence à suivre :</p>
+      <ul>
+        <li>📱 <strong>Scannez le QR Code</strong> du produit → la fiche s'ouvre sur votre téléphone</li>
+        <li>🗣️ <strong>Lisez le symptôme client</strong> (cas concret rencontré en boutique)</li>
+        <li>🔍 <strong>Examinez le produit physique</strong> posé devant vous</li>
+        <li>📚 <strong>Consultez la contribution SAVVY</strong> associée — un mot-clé y est caché</li>
+        <li>✍️ <strong>Remplissez la fiche</strong> : Diagnostic + N° de série + Mot-clé SAVVY</li>
+        <li>✅ <strong>Cliquez sur Valider</strong> — votre score est mis à jour en direct</li>
+      </ul>
+      <blockquote>⚠️ <strong>Une seule validation par produit et par équipe.</strong> Réfléchissez avant de cliquer.</blockquote>
+      <hr>
+      <h2>🧮 Le barème</h2>
+      <h3>🎯 Diagnostic (Filtering / SAV)</h3>
+      <table>
+        <tr><th>Situation</th><th>Points</th></tr>
+        <tr><td>✅ Filtering Magasin correct</td><td><strong>+2</strong></td></tr>
+        <tr><td>✅ Envoi SAV correct</td><td><strong>+1</strong></td></tr>
+        <tr><td>❌ Mauvais diagnostic</td><td><strong>−1</strong></td></tr>
+      </table>
+      <blockquote>💡 Le Filtering rapporte plus : c'est la décision la plus difficile, celle qui évite un envoi inutile.</blockquote>
+      <h3>🔢 Bonus N° de série</h3>
+      <table>
+        <tr><th>Situation</th><th>Points</th></tr>
+        <tr><td>✅ N° de série exact</td><td><strong>+1</strong></td></tr>
+        <tr><td>❌ N° de série faux</td><td><strong>−1</strong></td></tr>
+      </table>
+      <h3>🔎 Bonus Mot-clé SAVVY</h3>
+      <table>
+        <tr><th>Situation</th><th>Points</th></tr>
+        <tr><td>✅ Mot-clé correct</td><td><strong>+1</strong></td></tr>
+        <tr><td>❌ Mot-clé faux</td><td><strong>−1</strong></td></tr>
+      </table>
+      <blockquote>🏆 Score maximum théorique : <strong>166 points</strong></blockquote>
+      <hr>
+      <h2>🏆 Le classement</h2>
+      <p>Un <strong>écran projeté</strong> affiche le classement en temps réel :</p>
+      <ul>
+        <li>🥇 Score total par équipe</li>
+        <li>🎯 Détail par atelier (CAF / ASP / MUL)</li>
+        <li>🔢 Bonus global N° de Série</li>
+        <li>🔎 Bonus global Mot-clé SAVVY</li>
+      </ul>
+      <hr>
+      <h2>🏅 Les récompenses</h2>
+      <ul>
+        <li>🥇 <strong>Champion du Filtering 2026</strong> : score total le plus élevé</li>
+        <li>🔢 <strong>Prix de la Précision</strong> : meilleur bonus N° de série</li>
+        <li>📚 <strong>Prix du Savoir</strong> : meilleur bonus SAVVY</li>
+        <li>⚡ <strong>Prix du Finisher</strong> : 1ʳᵉ équipe à traiter les 45 cas</li>
+      </ul>
+      <hr>
+      <h2>⚖️ Les règles d'or</h2>
+      <ul>
+        <li><strong>Un seul téléphone par équipe</strong> pour valider</li>
+        <li><strong>Pas de partage de réponses</strong> entre équipes</li>
+        <li><strong>Pas de recherche Google</strong> — seule la fiche SAVVY fait foi</li>
+        <li><strong>Échange et débat autorisés</strong> dans l'équipe</li>
+        <li><strong>La validation est définitive</strong> — pas de retour en arrière</li>
+        <li><strong>En cas de litige</strong>, l'animateur tranche</li>
+      </ul>
+      <hr>
+      <h2>⏱️ Le timing</h2>
+      <ul>
+        <li>Ouverture du jeu : <strong>[HEURE DE DÉBUT]</strong></li>
+        <li>Fermeture des validations : <strong>[HEURE DE FIN]</strong></li>
+        <li>Remise des prix : <strong>[HEURE DE CLÔTURE]</strong></li>
+      </ul>
+      <blockquote>🚨 Après la cloche finale, plus aucune saisie n'est prise en compte.</blockquote>
+      <hr>
+      <p style="font-style:italic;color:#aaa;text-align:center;font-size:13px">Ce jeu n'est pas qu'un concours. C'est une répétition grandeur nature de ce que vous faites tous les jours face à un client. <strong style="color:var(--gold)">Chaque bonne décision prise aujourd'hui, c'est un client satisfait demain.</strong></p>
+    </div>
+    <button class="btn-link btn-outline" style="margin-bottom:24px" onclick="showHome()">← Retour à l'accueil</button>
   </div>`);
 }
 
