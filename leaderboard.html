@@ -139,7 +139,6 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
         <input type="password" class="pin-input" id="pin-input" maxlength="4" placeholder="PIN" oninput="checkPin()" />
         <button class="pin-btn" onclick="checkPin()">OK</button>
       </div>
-      <div style="color:#777;font-size:13px;text-align:center">Code PIN : <strong>2026</strong></div>
     </div>
     <button class="close-btn" onclick="toggleAdmin()">✕ Fermer</button>
   </div>
@@ -159,7 +158,7 @@ const FIREBASE_CONFIG = {
   appId: "1:505979371071:web:428fe599f2966e5997c28a"
 };
 
-const ADMIN_PIN = "2026";
+const ADMIN_PIN = atob("MjAyNg==");
 /* Max theoretical : diag 2*15 par atelier = 30 × 3 + série 1*45 + mot-clé SAVVY 1*45 = 180 pts */
 const MAX_DIAG_PER_WORKSHOP = 30;
 const MAX_SERIAL_TOTAL = 45;
@@ -343,8 +342,7 @@ function toggleAdmin() {
       <div class="pin-row">
         <input type="password" class="pin-input" id="pin-input" maxlength="4" placeholder="PIN" oninput="checkPin()" />
         <button class="pin-btn" onclick="checkPin()">OK</button>
-      </div>
-      <div style="color:#777;font-size:13px;text-align:center">Code PIN : <strong>2026</strong></div>`;
+      </div>`;
   }
 }
 
