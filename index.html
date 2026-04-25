@@ -4,7 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Filtering Game — JF2026</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script>
+/* Charge jsQR depuis jsDelivr (fallback si BarcodeDetector absent) */
+(function(){
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+  s.onerror = function(){ console.warn('jsQR CDN indisponible — BarcodeDetector utilisé en priorité'); };
+  document.head.appendChild(s);
+})();
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
 <style>
@@ -1091,9 +1099,47 @@ function showReglement() {
 }
 
 /* ═══════════════════════════════════════════
-   QR SCANNER (jsQR + getUserMedia)
+   QR SCANNER — BarcodeDetector (natif Chrome/Android) + jsQR (fallback)
 ═══════════════════════════════════════════ */
-let _qrStream = null, _qrRaf = null, _qrActive = false;
+let _qrStream = null, _qrRaf = null, _qrActive = false, _qrDetector = null;
+let _qrLastTick = 0;
+
+/* Extrait l'ID produit depuis n'importe quel format de QR code */
+function _extractProductId(raw) {
+  if (!raw) return null;
+  raw = raw.trim();
+
+  // Format 1 : URL avec ?p=ASP-03
+  try {
+    const u = new URL(raw);
+    const p = u.searchParams.get('p');
+    if (p && PRODUCTS[p.toUpperCase()]) return p.toUpperCase();
+  } catch(e) {}
+
+  // Format 2 : texte multiligne "Code: ASP-03" ou "Code - ASP-03"
+  const m = raw.match(/Code\s*[:\-]\s*([A-Z]{2,3}-\d{2})/i);
+  if (m) { const p = m[1].toUpperCase(); if (PRODUCTS[p]) return p; }
+
+  // Format 3 : pipe-séparé "Aspirateur | ASP-03 | Produit: …"
+  const parts = raw.split('|').map(s => s.trim());
+  for (const part of parts) {
+    const p = part.toUpperCase();
+    if (PRODUCTS[p]) return p;
+  }
+
+  // Format 4 : ID direct "ASP-03"
+  const direct = raw.toUpperCase().replace(/\s/g,'');
+  if (PRODUCTS[direct]) return direct;
+
+  return null;
+}
+
+function _onProductFound(productId) {
+  closeQrScanner();
+  if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+  showProduct(productId);
+  history.replaceState(null, '', '?p=' + productId);
+}
 
 function openQrScanner() {
   const modal = document.getElementById('qr-modal');
@@ -1108,48 +1154,82 @@ function openQrScanner() {
     return;
   }
 
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } })
-    .then(stream => {
-      if (!_qrActive) { stream.getTracks().forEach(t => t.stop()); return; }
-      _qrStream = stream;
-      const video = document.getElementById('qr-video');
-      video.srcObject = stream;
-      video.play().then(() => {
-        status.textContent = 'Caméra active — cherche un QR code…';
-        _qrRaf = requestAnimationFrame(_qrScanTick);
-      });
-    })
-    .catch(err => {
-      console.warn('QR cam:', err);
-      status.textContent = '⛔ Accès caméra refusé ou indisponible';
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+  }).then(stream => {
+    if (!_qrActive) { stream.getTracks().forEach(t => t.stop()); return; }
+    _qrStream = stream;
+    const video = document.getElementById('qr-video');
+    video.srcObject = stream;
+    video.play().then(() => {
+      /* Choisir la méthode de décodage disponible */
+      if (typeof BarcodeDetector !== 'undefined') {
+        /* ── Méthode 1 : BarcodeDetector (natif Chrome/Android, aucune dépendance) ── */
+        BarcodeDetector.getSupportedFormats().then(formats => {
+          if (formats.includes('qr_code')) {
+            _qrDetector = new BarcodeDetector({ formats: ['qr_code'] });
+            status.textContent = '📷 Caméra active — pointez vers un QR code';
+            _qrRaf = requestAnimationFrame(_qrTickBD);
+          } else {
+            _startJsQRScan(status);
+          }
+        }).catch(() => _startJsQRScan(status));
+      } else {
+        _startJsQRScan(status);
+      }
     });
+  }).catch(err => {
+    console.warn('QR cam:', err);
+    status.textContent = '⛔ Accès caméra refusé ou indisponible';
+  });
 }
 
-function closeQrScanner() {
-  _qrActive = false;
-  if (_qrRaf) { cancelAnimationFrame(_qrRaf); _qrRaf = null; }
-  if (_qrStream) { _qrStream.getTracks().forEach(t => t.stop()); _qrStream = null; }
-  const video = document.getElementById('qr-video');
-  if (video) { video.srcObject = null; }
-  const modal = document.getElementById('qr-modal');
-  if (modal) modal.classList.remove('show');
-}
-
-let _qrLastTick = 0; // throttle : scan toutes les 250 ms max
-
-function _qrScanTick(ts) {
+/* ── BarcodeDetector scan loop ── */
+async function _qrTickBD(ts) {
   if (!_qrActive) return;
-  // Throttle CPU : ne traiter que ~4 fois/sec sur mobile
-  if (ts - _qrLastTick < 250) { _qrRaf = requestAnimationFrame(_qrScanTick); return; }
+  if (ts - _qrLastTick < 300) { _qrRaf = requestAnimationFrame(_qrTickBD); return; }
   _qrLastTick = ts;
+  const video = document.getElementById('qr-video');
+  if (!video || video.readyState < 2) { _qrRaf = requestAnimationFrame(_qrTickBD); return; }
+  try {
+    const results = await _qrDetector.detect(video);
+    for (const barcode of results) {
+      const pid = _extractProductId(barcode.rawValue);
+      if (pid) { _onProductFound(pid); return; }
+    }
+  } catch(e) {}
+  _qrRaf = requestAnimationFrame(_qrTickBD);
+}
 
+/* ── jsQR scan loop ── */
+function _startJsQRScan(status) {
+  if (typeof jsQR === 'function') {
+    status.textContent = '📷 Caméra active — pointez vers un QR code';
+    _qrRaf = requestAnimationFrame(_qrTickJsQR);
+  } else {
+    /* jsQR pas encore chargé : attendre 2s et réessayer */
+    status.textContent = '⏳ Chargement du décodeur QR…';
+    setTimeout(() => {
+      if (!_qrActive) return;
+      if (typeof jsQR === 'function') {
+        status.textContent = '📷 Caméra active — pointez vers un QR code';
+        _qrRaf = requestAnimationFrame(_qrTickJsQR);
+      } else {
+        status.textContent = '⚠️ Décodeur QR indisponible hors-ligne — utilisez un autre navigateur ou activez le Wi-Fi';
+      }
+    }, 2000);
+  }
+}
+
+function _qrTickJsQR(ts) {
+  if (!_qrActive) return;
+  if (ts - _qrLastTick < 250) { _qrRaf = requestAnimationFrame(_qrTickJsQR); return; }
+  _qrLastTick = ts;
   const video = document.getElementById('qr-video');
   const canvas = document.getElementById('qr-canvas');
   if (!video || !canvas || video.readyState < 2 || video.videoWidth === 0) {
-    _qrRaf = requestAnimationFrame(_qrScanTick); return;
+    _qrRaf = requestAnimationFrame(_qrTickJsQR); return;
   }
-
-  // Réduire la résolution pour gagner en performance sur mobile
   const MAX = 640;
   const scale = Math.min(1, MAX / Math.max(video.videoWidth, video.videoHeight));
   canvas.width  = Math.round(video.videoWidth  * scale);
@@ -1157,60 +1237,27 @@ function _qrScanTick(ts) {
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-  if (typeof jsQR !== 'function') {
-    const st = document.getElementById('qr-status');
-    if (st) st.textContent = '⚠️ Bibliothèque QR non chargée — vérifiez la connexion';
-    _qrRaf = requestAnimationFrame(_qrScanTick); return;
-  }
-
   const result = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'attemptBoth' });
-
   if (result && result.data) {
-    const raw = result.data.trim();
-    let productId = null;
-
-    // ── Format 1 : URL avec ?p=ASP-03 ────────────────────────────────
-    try {
-      const u = new URL(raw);
-      const p = u.searchParams.get('p');
-      if (p && PRODUCTS[p.toUpperCase()]) productId = p.toUpperCase();
-    } catch(e) {}
-
-    // ── Format 2 : texte multiligne "Code: ASP-03" (fichiers QR actuels) ──
-    if (!productId) {
-      const m = raw.match(/Code\s*[:\-]\s*([A-Z]{2,3}-\d{2})/i);
-      if (m) { const p = m[1].toUpperCase(); if (PRODUCTS[p]) productId = p; }
-    }
-
-    // ── Format 3 : pipe-séparé "Aspirateur | ASP-03 | Produit: …" ────
-    if (!productId) {
-      const parts = raw.split('|').map(s => s.trim());
-      for (const part of parts) {
-        const p = part.toUpperCase();
-        if (PRODUCTS[p]) { productId = p; break; }
-      }
-    }
-
-    // ── Format 4 : ID direct "ASP-03" ────────────────────────────────
-    if (!productId) {
-      const p = raw.toUpperCase().replace(/\s/g,'');
-      if (PRODUCTS[p]) productId = p;
-    }
-
-    if (productId) {
-      closeQrScanner();
-      if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
-      showProduct(productId);
-      history.replaceState(null, '', '?p=' + productId);
-      return;
-    } else {
+    const pid = _extractProductId(result.data);
+    if (pid) { _onProductFound(pid); return; }
+    else {
       const st = document.getElementById('qr-status');
-      if (st) st.textContent = '⚠️ QR lu mais non reconnu — cherche un QR produit';
+      if (st) st.textContent = '⚠️ QR lu mais inconnu — cherchez un QR produit JF2026';
     }
   }
+  _qrRaf = requestAnimationFrame(_qrTickJsQR);
+}
 
-  _qrRaf = requestAnimationFrame(_qrScanTick);
+function closeQrScanner() {
+  _qrActive = false;
+  _qrDetector = null;
+  if (_qrRaf) { cancelAnimationFrame(_qrRaf); _qrRaf = null; }
+  if (_qrStream) { _qrStream.getTracks().forEach(t => t.stop()); _qrStream = null; }
+  const video = document.getElementById('qr-video');
+  if (video) video.srcObject = null;
+  const modal = document.getElementById('qr-modal');
+  if (modal) modal.classList.remove('show');
 }
 
 init();
