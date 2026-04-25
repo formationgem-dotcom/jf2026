@@ -739,10 +739,12 @@ async function showProduct(productId) {
 
   // Check previous answer
   let prevHtml = '';
+  let alreadyAnswered = false;
   if (db && currentTeam) {
     try {
       const snap = await db.ref(`/submissions/${prod.workshop}/${currentTeam.id}/${productId}`).get();
       if (snap.exists()) {
+        alreadyAnswered = true;
         const prev = snap.val();
         const total = (prev.score !== undefined) ? prev.score : ((prev.diagScore||0) + (prev.serialScore||0));
         const isCorrect = total > 0;
@@ -757,32 +759,14 @@ async function showProduct(productId) {
     } catch(e) {}
   }
 
-  setApp(`${header()}
-  <div class="content">
-    <div>
-      <span class="workshop-badge ${meta.badge}">${meta.name}</span>
-    </div>
-    <div class="product-ref ${meta.cls}">${productId}</div>
-    <div class="product-type">${prod.type}</div>
-    <div class="symptom-card ${meta.cls}">
-      <div class="symptom-label">📢 Ce que dit le client</div>
-      ${prod.vimeoId ? `
-        <div class="video-thumb ${prod.videoRatio === '1/1' ? 'square' : ''}"
-             onclick="openVideoModal('${prod.vimeoId}','${prod.videoRatio || '16/9'}')"
-             role="button" tabindex="0"
-             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openVideoModal('${prod.vimeoId}','${prod.videoRatio || '16/9'}')}">
-          <img src="${prod.videoPoster || `https://vumbnail.com/${prod.vimeoId}.jpg`}"
-               alt="Vignette vidéo symptôme"
-               onerror="this.style.display='none'" />
-          <div class="play-btn"></div>
-          <div class="video-caption">▶ Voir la vidéo du symptôme</div>
-        </div>
-      ` : ''}
-      <div class="symptom-text">« ${prod.symptom} »</div>
-    </div>
-    ${prevHtml}
-
-    <div class="section-title"><span class="step-num">1</span> N° de série du produit</div>
+  // Bloc formulaire : verrouillé si déjà soumis
+  const formHtml = alreadyAnswered
+    ? `<div style="background:rgba(255,80,80,.08);border:2px solid var(--red);border-radius:14px;padding:18px 16px;margin-top:8px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">🔒</div>
+        <div style="font-weight:800;font-size:15px;color:var(--red);margin-bottom:6px;">Atelier déjà validé</div>
+        <div style="font-size:13px;color:#aaa;">Votre équipe a déjà soumis une réponse pour ce produit.<br>Il n'est pas possible de rejouer un atelier.</div>
+      </div>`
+    : `<div class="section-title"><span class="step-num">1</span> N° de série du produit</div>
     <div class="serial-card">
       <input type="text" class="serial-input" id="serial-input"
              placeholder="Saisir le N° de série"
@@ -828,11 +812,37 @@ async function showProduct(productId) {
 
     <button class="btn-validate" id="btn-validate" onclick="submitFinal('${productId}')" disabled>
       Valider ma réponse
-    </button>
+    </button>`;
+
+  setApp(`${header()}
+  <div class="content">
+    <div>
+      <span class="workshop-badge ${meta.badge}">${meta.name}</span>
+    </div>
+    <div class="product-ref ${meta.cls}">${productId}</div>
+    <div class="product-type">${prod.type}</div>
+    <div class="symptom-card ${meta.cls}">
+      <div class="symptom-label">📢 Ce que dit le client</div>
+      ${prod.vimeoId ? `
+        <div class="video-thumb ${prod.videoRatio === '1/1' ? 'square' : ''}"
+             onclick="openVideoModal('${prod.vimeoId}','${prod.videoRatio || '16/9'}')"
+             role="button" tabindex="0"
+             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openVideoModal('${prod.vimeoId}','${prod.videoRatio || '16/9'}')}">
+          <img src="${prod.videoPoster || `https://vumbnail.com/${prod.vimeoId}.jpg`}"
+               alt="Vignette vidéo symptôme"
+               onerror="this.style.display='none'" />
+          <div class="play-btn"></div>
+          <div class="video-caption">▶ Voir la vidéo du symptôme</div>
+        </div>
+      ` : ''}
+      <div class="symptom-text">« ${prod.symptom} »</div>
+    </div>
+    ${prevHtml}
+    ${formHtml}
   </div>`);
 
   // Attention accessible : focus non agressif
-  updateValidateBtn();
+  if (!alreadyAnswered) updateValidateBtn();
 }
 
 function selectAnswer(answer) {
@@ -860,6 +870,19 @@ async function submitFinal(productId) {
   if (!currentTeam) { showTeamSelect(); return; }
   const prod = PRODUCTS[productId];
   if (!prod) { showHome(); return; }
+
+  // Guard : vérifier côté serveur que ce produit n'a pas déjà été soumis
+  if (db) {
+    try {
+      const snap = await db.ref(`/submissions/${prod.workshop}/${currentTeam.id}/${productId}`).get();
+      if (snap.exists()) {
+        showToast('🔒 Ce produit a déjà été soumis par votre équipe.');
+        setTimeout(() => showProduct(productId), 1000);
+        return;
+      }
+    } catch(e) { /* en cas d'erreur réseau, on laisse continuer */ }
+  }
+
   if (!selectedAnswer) { showToast('⚠️ Sélectionnez Filtering ou Réparation'); return; }
   const serialRaw = document.getElementById('serial-input')?.value?.trim() || '';
   if (!serialRaw) { showToast('⚠️ Saisissez le N° de série'); return; }
