@@ -6,6 +6,7 @@
 <title>Classement — JF2026</title>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root {
   --navy: #1A1A2E; --navy2: #2E2E5E;
@@ -359,8 +360,8 @@ function showAdminPanel() {
   document.getElementById('admin-body').innerHTML = `
     <div class="admin-section">
       <div class="admin-section-title">📊 Export des résultats</div>
-      <button class="export-btn" onclick="exportCSV()">📥 Télécharger les résultats (CSV)</button>
-      <div style="font-size:11px;color:#666;margin-top:4px">Ouvrable dans Excel • Diagnostic + N° de série + Mot-clé SAVVY + membres</div>
+      <button class="export-btn" onclick="exportXLSX()">📥 Télécharger les résultats (Excel)</button>
+      <div style="font-size:11px;color:#666;margin-top:4px">4 onglets : Résumé · Aspiration · Café · Multimédia — toutes les réponses détaillées</div>
     </div>
 
     <div class="admin-section">
@@ -516,25 +517,93 @@ async function resetScores() {
   }
 }
 
-/* ---- EXPORT CSV ---- */
-function exportCSV() {
+/* ---- EXPORT EXCEL MULTI-ONGLETS ---- */
+function exportXLSX() {
   const scores = calculateScores(currentSubmissions, currentTeamsData);
-  const teams = Object.values(scores).sort((a,b) => b.total - a.total);
-  const headers = ['Rang','Equipe','Membres','Asp (diag)','Cafe (diag)','Multi (diag)','Bonus N Serie','Bonus SAVVY','Total','Reponses'];
-  const rows = teams.map((t, i) => [
+  const wb = XLSX.utils.book_new();
+
+  /* ── Onglet 1 : Résumé classement ── */
+  const summaryTeams = Object.values(scores).sort((a,b) => b.total - a.total);
+  const summaryHeaders = ['Rang','Équipe','Membres','Asp – Diag','Café – Diag','Multi – Diag','Bonus N° Série','Bonus SAVVY','TOTAL','Réponses'];
+  const summaryRows = summaryTeams.map((t, i) => [
     i+1,
-    `"${t.name}"`,
-    `"${(t.members||[]).join(', ')}"`,
+    t.name,
+    (t.members||[]).join(', '),
     t.asp, t.caf, t.mul, t.serialBonus, t.keywordBonus, t.total, t.responses
   ]);
-  const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `resultats_filtering_game_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const wsSummary = XLSX.utils.aoa_to_sheet([summaryHeaders, ...summaryRows]);
+  wsSummary['!cols'] = [5,22,30,14,14,14,16,14,10,12].map(w => ({wch:w}));
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Résumé');
+
+  /* ── Helper : onglet détaillé par atelier ── */
+  function buildDetailSheet(workshopKey, products) {
+    const wsData = currentSubmissions[workshopKey] || {};
+    const headers = [
+      'Équipe','Membres','Produit',
+      'Réponse donnée','Bonne réponse','Diag correct ?','Score Diag',
+      'N° Série saisi','N° Série attendu','Série correcte ?','Score Série',
+      'Mot-clé saisi','Mot-clé attendu','Mot-clé correct ?','Score SAVVY',
+      'Score total produit','Horodatage'
+    ];
+    const rows = [];
+
+    Object.keys(wsData).forEach(teamId => {
+      const teamSubs = wsData[teamId] || {};
+      products.forEach(prodId => {
+        const sub = teamSubs[prodId];
+        if (!sub) {
+          // Produit non répondu par cette équipe
+          const teamInfo = currentTeamsData[teamId] || {};
+          rows.push([
+            teamInfo.name || teamId,
+            (teamInfo.members || []).join(', '),
+            prodId,
+            '—','—','Non répondu','',
+            '','','','',
+            '','','','',
+            '','—'
+          ]);
+        } else {
+          const diagLabel = v => v === 'filtering' ? 'Filtering Magasin' : v === 'sav' ? 'Envoi SAV' : (v || '?');
+          const ts = sub.timestamp ? new Date(sub.timestamp).toLocaleString('fr-FR') : '—';
+          rows.push([
+            sub.teamName || teamId,
+            (sub.members || []).join(', '),
+            sub.product || prodId,
+            diagLabel(sub.answer),
+            diagLabel(sub.correct),
+            sub.diagScore > 0 ? 'Oui' : 'Non',
+            sub.diagScore != null ? sub.diagScore : '',
+            sub.serialInput || '',
+            sub.serialExpected || '',
+            sub.serialCorrect ? 'Oui' : 'Non',
+            sub.serialScore != null ? sub.serialScore : '',
+            sub.keywordInput || '',
+            sub.keywordExpected || '',
+            sub.keywordCorrect ? 'Oui' : 'Non',
+            sub.keywordScore != null ? sub.keywordScore : '',
+            sub.score != null ? sub.score : ((sub.diagScore||0)+(sub.serialScore||0)+(sub.keywordScore||0)),
+            ts
+          ]);
+        }
+      });
+    });
+
+    // Tri : par équipe puis par produit
+    rows.sort((a, b) => (a[0]||'').localeCompare(b[0]||'') || (a[2]||'').localeCompare(b[2]||''));
+
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    ws['!cols'] = [20,28,10,20,20,14,12,18,18,14,12,18,18,14,12,14,18].map(w=>({wch:w}));
+    return ws;
+  }
+
+  /* ── Onglets détaillés ── */
+  XLSX.utils.book_append_sheet(wb, buildDetailSheet('asp', ASP_PRODUCTS), 'Aspiration');
+  XLSX.utils.book_append_sheet(wb, buildDetailSheet('caf', CAF_PRODUCTS), 'Café');
+  XLSX.utils.book_append_sheet(wb, buildDetailSheet('mul', MUL_PRODUCTS), 'Multimédia');
+
+  /* ── Téléchargement ── */
+  XLSX.writeFile(wb, 'resultats_filtering_game_' + new Date().toISOString().slice(0,10) + '.xlsx');
 }
 
 window.onload = init;
