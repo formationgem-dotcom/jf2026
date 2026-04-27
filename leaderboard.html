@@ -377,9 +377,100 @@ function showAdminPanel() {
     </div>
 
     <div class="admin-section">
+      <div class="admin-section-title">🛠️ Gestion des équipes</div>
+      <button class="export-btn" onclick="loadTeamEditor()" style="margin-bottom:6px">✏️ Modifier / Déverrouiller une équipe</button>
+      <div style="font-size:11px;color:#666">Corrige une erreur de saisie ou libère un slot bloqué</div>
+      <div id="team-editor-zone" style="margin-top:12px"></div>
+    </div>
+
+    <div class="admin-section">
       <div class="admin-section-title">Danger zone</div>
       <button class="reset-btn" onclick="resetScores()">🗑️ Remettre tous les scores à zéro</button>
     </div>`;
+}
+
+/* ---- ADMIN : GESTION DES ÉQUIPES ---- */
+async function loadTeamEditor() {
+  if (!db) { alert('Firebase non connecté.'); return; }
+  const zone = document.getElementById('team-editor-zone');
+  if (!zone) return;
+  zone.innerHTML = '<div style="color:#aaa;font-size:12px">Chargement…</div>';
+
+  try {
+    const snap = await db.ref('/teams').get();
+    const teams = snap.val() || {};
+    if (Object.keys(teams).length === 0) {
+      zone.innerHTML = '<div style="color:#aaa;font-size:12px">Aucune équipe inscrite.</div>';
+      return;
+    }
+
+    const rows = Object.values(teams).sort((a,b) => (a.id||'').localeCompare(b.id||'')).map(t => `
+      <div style="background:#1a1a3a;border-radius:10px;padding:10px 12px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:13px;font-weight:700;color:var(--gold)">${t.id}</span>
+          <span style="font-size:11px;color:${t.locked ? '#4caf50' : '#f44336'}">${t.locked ? '🔒 Verrouillé' : '🔓 Libre'}</span>
+        </div>
+        <div style="font-size:12px;color:#ccc;margin-bottom:8px">
+          <strong>${t.name || '—'}</strong><br>
+          <span style="color:#888">${(t.members||[]).join(', ') || 'Aucun membre'}</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button onclick="editTeam('${t.id}')" style="background:#2a4a8a;border:none;color:#fff;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer">✏️ Modifier</button>
+          <button onclick="unlockTeam('${t.id}')" style="background:#5a3a00;border:none;color:#ffb300;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer">🔓 Déverrouiller</button>
+          <button onclick="deleteTeam('${t.id}')" style="background:#5a1a1a;border:none;color:#ff6b6b;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer">🗑️ Supprimer</button>
+        </div>
+      </div>`).join('');
+
+    zone.innerHTML = rows;
+  } catch(e) {
+    zone.innerHTML = `<div style="color:#f44;font-size:12px">Erreur : ${e.message}</div>`;
+  }
+}
+
+async function editTeam(teamId) {
+  if (!db) return;
+  const snap = await db.ref(`/teams/${teamId}`).get();
+  const t = snap.val();
+  if (!t) { alert('Équipe introuvable.'); return; }
+
+  const newName    = prompt(`Nouveau nom de l'équipe "${t.name}" :`, t.name);
+  if (newName === null) return;
+  const newMembers = prompt('Membres (séparés par des virgules) :', (t.members||[]).join(', '));
+  if (newMembers === null) return;
+
+  const membersArr = newMembers.split(',').map(m => m.trim()).filter(Boolean);
+
+  try {
+    await db.ref(`/teams/${teamId}`).update({
+      name: newName.trim() || t.name,
+      members: membersArr,
+      updatedAt: Date.now()
+    });
+    alert(`✅ Équipe "${teamId}" mise à jour.`);
+    loadTeamEditor();
+  } catch(e) { alert('Erreur : ' + e.message); }
+}
+
+async function unlockTeam(teamId) {
+  if (!db) return;
+  if (!confirm(`Déverrouiller le slot "${teamId}" ? L'équipe pourra se réinscrire depuis l'accueil.`)) return;
+  try {
+    await db.ref(`/teams/${teamId}`).remove();
+    alert(`✅ Slot "${teamId}" libéré.`);
+    loadTeamEditor();
+  } catch(e) { alert('Erreur : ' + e.message); }
+}
+
+async function deleteTeam(teamId) {
+  if (!db) return;
+  if (!confirm(`⚠️ Supprimer l'équipe "${teamId}" ET toutes ses réponses ? Action irréversible.`)) return;
+  try {
+    await db.ref(`/teams/${teamId}`).remove();
+    // Supprimer aussi les soumissions de cette équipe dans chaque atelier
+    await Promise.all(['asp','caf','mul'].map(ws => db.ref(`/submissions/${ws}/${teamId}`).remove()));
+    alert(`✅ Équipe et réponses "${teamId}" supprimées.`);
+    loadTeamEditor();
+  } catch(e) { alert('Erreur : ' + e.message); }
 }
 
 async function exportCSV() {
