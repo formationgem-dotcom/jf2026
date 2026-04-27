@@ -504,8 +504,36 @@ function init() {
   } catch(e) {
     db = null;
   }
+
+  // Vérifier que la session locale correspond à la session Firebase en cours.
+  // Si le coordinateur a fait un reset, gameSession aura changé → on efface le localStorage.
   const saved = localStorage.getItem('jf2026_team');
   if (saved) try { currentTeam = JSON.parse(saved); } catch(e) {}
+
+  if (db && currentTeam) {
+    db.ref('/gameSession').get().then(snap => {
+      const firebaseSession = snap.val();
+      const localSession = localStorage.getItem('jf2026_session');
+      if (firebaseSession && localSession !== firebaseSession) {
+        // Le jeu a été réinitialisé depuis ce téléphone — on purge la session locale
+        localStorage.removeItem('jf2026_team');
+        localStorage.setItem('jf2026_session', firebaseSession);
+        currentTeam = null;
+        const params = new URLSearchParams(window.location.search);
+        const p = params.get('p');
+        route(p);
+      }
+    }).catch(() => {});
+  }
+
+  // Synchroniser la session locale si elle n'est pas encore enregistrée
+  if (db) {
+    db.ref('/gameSession').get().then(snap => {
+      const firebaseSession = snap.val();
+      if (firebaseSession) localStorage.setItem('jf2026_session', firebaseSession);
+    }).catch(() => {});
+  }
+
   const params = new URLSearchParams(window.location.search);
   const p = params.get('p');
   route(p);

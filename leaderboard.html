@@ -433,150 +433,111 @@ async function editTeam(teamId) {
   const t = snap.val();
   if (!t) { alert('Équipe introuvable.'); return; }
 
-  const newName    = prompt(`Nouveau nom de l'équipe "${t.name}" :`, t.name);
-  if (newName === null) return;
-  const newMembers = prompt('Membres (séparés par des virgules) :', (t.members||[]).join(', '));
-  if (newMembers === null) return;
+  // Affiche un formulaire inline à la place de la liste
+  const zone = document.getElementById('team-editor-zone');
+  const membersStr = (t.members || []).join(', ');
 
-  const membersArr = newMembers.split(',').map(m => m.trim()).filter(Boolean);
+  zone.innerHTML = `
+    <div style="background:#1a1a3a;border-radius:10px;padding:14px;border:1px solid var(--gold)">
+      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:12px">✏️ Modifier — ${teamId}</div>
 
+      <label style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">Nom de l'équipe</label>
+      <input id="edit-team-name" type="text" value="${(t.name||'').replace(/"/g,'&quot;')}"
+        style="width:100%;box-sizing:border-box;background:#0d0d2b;border:1px solid #444;border-radius:8px;color:#fff;padding:8px 10px;font-size:14px;margin-bottom:12px" />
+
+      <label style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">Participants (séparés par des virgules)</label>
+      <input id="edit-team-members" type="text" value="${membersStr.replace(/"/g,'&quot;')}"
+        style="width:100%;box-sizing:border-box;background:#0d0d2b;border:1px solid #444;border-radius:8px;color:#fff;padding:8px 10px;font-size:14px;margin-bottom:14px"
+        placeholder="Prénom1, Prénom2, Prénom3" />
+
+      <div style="display:flex;gap:8px">
+        <button onclick="saveTeamEdit('${teamId}')"
+          style="flex:1;background:var(--gold);border:none;color:#000;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer">✅ Enregistrer</button>
+        <button onclick="loadTeamEditor()"
+          style="flex:1;background:#333;border:none;color:#fff;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer">✖ Annuler</button>
+      </div>
+    </div>`;
+}
+
+async function saveTeamEdit(teamId) {
+  if (!db) return;
+  const name = document.getElementById('edit-team-name')?.value?.trim();
+  const membersRaw = document.getElementById('edit-team-members')?.value?.trim();
+  if (!name) { alert('Le nom ne peut pas être vide.'); return; }
+  const members = membersRaw ? membersRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
   try {
-    await db.ref(`/teams/${teamId}`).update({
-      name: newName.trim() || t.name,
-      members: membersArr,
-      updatedAt: Date.now()
-    });
-    alert(`✅ Équipe "${teamId}" mise à jour.`);
+    await db.ref(`/teams/${teamId}`).update({ name, members });
+    alert(`✅ Équipe ${teamId} mise à jour.`);
     loadTeamEditor();
-  } catch(e) { alert('Erreur : ' + e.message); }
+  } catch(e) {
+    alert('Erreur lors de la sauvegarde : ' + e.message);
+  }
 }
 
 async function unlockTeam(teamId) {
   if (!db) return;
-  if (!confirm(`Déverrouiller le slot "${teamId}" ? L'équipe pourra se réinscrire depuis l'accueil.`)) return;
+  if (!confirm(`Déverrouiller le slot ${teamId} ? L'équipe pourra modifier son nom.`)) return;
   try {
-    await db.ref(`/teams/${teamId}`).remove();
-    alert(`✅ Slot "${teamId}" libéré.`);
+    await db.ref(`/teams/${teamId}`).update({ locked: false });
     loadTeamEditor();
-  } catch(e) { alert('Erreur : ' + e.message); }
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+  }
 }
 
 async function deleteTeam(teamId) {
   if (!db) return;
-  if (!confirm(`⚠️ Supprimer l'équipe "${teamId}" ET toutes ses réponses ? Action irréversible.`)) return;
+  if (!confirm(`Supprimer définitivement le slot ${teamId} ? Cette action est irréversible.`)) return;
   try {
     await db.ref(`/teams/${teamId}`).remove();
-    // Supprimer aussi les soumissions de cette équipe dans chaque atelier
-    await Promise.all(['asp','caf','mul'].map(ws => db.ref(`/submissions/${ws}/${teamId}`).remove()));
-    alert(`✅ Équipe et réponses "${teamId}" supprimées.`);
     loadTeamEditor();
-  } catch(e) { alert('Erreur : ' + e.message); }
-}
-
-async function exportCSV() {
-  if (!db) { alert('Firebase non connecté.'); return; }
-
-  try {
-    const snap = await db.ref('/').get();
-    const data = snap.val() || {};
-    const submissions = data.submissions || {};
-    const teamsData = data.teams || {};
-
-    // Header row
-    const rows = [[
-      'Rang', 'Équipe ID', 'Nom équipe', 'Membres',
-      'Atelier', 'Produit', 'Réponse donnée', 'Bonne réponse',
-      'Diag OK ?', 'Points diagnostic',
-      'N° série saisi', 'N° série attendu', 'Série OK ?', 'Points série',
-      'Mot-clé SAVVY saisi', 'Mot-clé SAVVY attendu', 'SAVVY OK ?', 'Points SAVVY',
-      'Total ligne', 'Date/Heure'
-    ]];
-
-    // Compute rankings
-    const scores = calculateScores(submissions, teamsData);
-    const ranked = Object.entries(scores)
-      .sort(([,a],[,b]) => b.total - a.total)
-      .reduce((acc, [id], i) => { acc[id] = i + 1; return acc; }, {});
-
-    const workshopLabel = { asp:'Aspiration', caf:'Broyeurs Café', mul:'Multimédia' };
-
-    ['asp', 'caf', 'mul'].forEach(workshop => {
-      const ws = submissions[workshop] || {};
-      Object.keys(ws).forEach(teamId => {
-        const teamData = teamsData[teamId] || {};
-        const teamName = teamData.name || scores[teamId]?.name || teamId;
-        const members = (teamData.members || []).join(', ');
-        const rang = ranked[teamId] || '-';
-
-        Object.values(ws[teamId]).forEach(sub => {
-          const diagScore    = (sub.diagScore !== undefined) ? sub.diagScore : (sub.score || 0);
-          const serialScore  = (sub.serialScore !== undefined) ? sub.serialScore : 0;
-          const keywordScore = (sub.keywordScore !== undefined) ? sub.keywordScore : 0;
-          const total = (sub.score !== undefined) ? sub.score : (diagScore + serialScore + keywordScore);
-          const diagOK = diagScore > 0 ? 'Oui' : 'Non';
-          const serialOK = sub.serialCorrect === true ? 'Oui' : (sub.serialCorrect === false ? 'Non' : '—');
-          const keywordOK = sub.keywordCorrect === true ? 'Oui' : (sub.keywordCorrect === false ? 'Non' : '—');
-          const dateStr = sub.timestamp
-            ? new Date(sub.timestamp).toLocaleString('fr-FR')
-            : '';
-          rows.push([
-            rang, teamId, teamName, members,
-            workshopLabel[workshop] || workshop,
-            sub.product || '',
-            sub.answer || '', sub.correct || '',
-            diagOK, diagScore,
-            sub.serialInput || '', sub.serialExpected || '', serialOK, serialScore,
-            sub.keywordInput || '', sub.keywordExpected || '', keywordOK, keywordScore,
-            total, dateStr
-          ]);
-        });
-      });
-    });
-
-    // Sort by team rank, then product
-    rows.sort((a, b) => {
-      if (a === rows[0]) return -1; // keep header first
-      return (a[0] - b[0]) || String(a[5]).localeCompare(String(b[5]));
-    });
-
-    // Generate CSV with BOM for Excel UTF-8
-    const csv = rows.map(r =>
-      r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')
-    ).join('\n');
-
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const now = new Date();
-    const dateTag = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-    a.href = url;
-    a.download = `resultats-jf2026-${dateTag}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    // Feedback
-    const btn = document.querySelector('.export-btn');
-    if (btn) { btn.textContent = '✅ Téléchargement lancé !'; setTimeout(() => { btn.textContent = '📥 Télécharger les résultats (CSV)'; }, 3000); }
-
   } catch(e) {
-    alert('Erreur lors de l\'export : ' + e.message);
+    alert('Erreur : ' + e.message);
   }
 }
 
+/* ---- RESET COMPLET (scores + équipes + invalidation des sessions locales) ---- */
 async function resetScores() {
-  if (!confirm('⚠️ Remettre TOUS les scores à zéro ? Cette action est irréversible.')) return;
-  if (!db) return;
+  if (!db) { alert('Firebase non connecté.'); return; }
+  const confirmed = confirm('⚠️ ATTENTION\n\nCette action va :\n• Effacer TOUS les scores\n• Supprimer TOUTES les équipes enregistrées\n• Forcer tous les téléphones à se réinscrire\n\nContinuer ?');
+  if (!confirmed) return;
+  const confirmed2 = confirm('Dernière confirmation : remettre le jeu à zéro ?');
+  if (!confirmed2) return;
+
   try {
     await db.ref('/submissions').remove();
     await db.ref('/teams').remove();
-    alert('Scores et équipes remis à zéro.');
+    const newSession = Date.now().toString();
+    await db.ref('/gameSession').set(newSession);
+    alert('✅ Remise à zéro effectuée.\n\nTous les téléphones seront forcés à se réinscrire lors de leur prochaine action.');
     toggleAdmin();
-  } catch(e) { alert('Erreur : ' + e.message); }
+  } catch(e) {
+    alert('Erreur lors de la remise à zéro : ' + e.message);
+  }
 }
 
-init();
+/* ---- EXPORT CSV ---- */
+function exportCSV() {
+  const scores = calculateScores(currentSubmissions, currentTeamsData);
+  const teams = Object.values(scores).sort((a,b) => b.total - a.total);
+  const headers = ['Rang','Equipe','Membres','Asp (diag)','Cafe (diag)','Multi (diag)','Bonus N Serie','Bonus SAVVY','Total','Reponses'];
+  const rows = teams.map((t, i) => [
+    i+1,
+    `"${t.name}"`,
+    `"${(t.members||[]).join(', ')}"`,
+    t.asp, t.caf, t.mul, t.serialBonus, t.keywordBonus, t.total, t.responses
+  ]);
+  const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `resultats_filtering_game_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+window.onload = init;
 </script>
 </body>
 </html>
