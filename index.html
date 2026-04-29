@@ -613,69 +613,17 @@ function showHome() {
   </div>`);
 }
 
-async function showTeamSelect() {
+// Affiche uniquement le formulaire d'inscription (le slot est attribué par le serveur)
+function showTeamSelect() {
   setApp(`${header(false)}
   <div class="content">
-    <div class="loading"><div class="spinner"></div><p>Chargement des équipes...</p></div>
-  </div>`);
-
-  let registeredTeams = {};
-  if (db) {
-    try {
-      const snap = await db.ref('/teams').get();
-      if (snap.exists()) registeredTeams = snap.val();
-    } catch(e) {}
-  }
-
-  const grid = TEAMS.map(t => {
-    const reg = registeredTeams[t.id];
-    const displayName = reg ? reg.name : t.name;
-    const isTaken = !!reg;
-    const memberCount = reg?.members?.length || 0;
-    const statusText = isTaken
-      ? `<div style="font-size:11px;color:#999;margin-top:4px">🔒 ${memberCount > 0 ? memberCount + ' membre' + (memberCount > 1 ? 's' : '') : 'Inscrite'}</div>`
-      : `<div style="font-size:11px;color:var(--gold);margin-top:4px">Disponible</div>`;
-    if (isTaken) {
-      return `<button class="team-btn taken" disabled style="opacity:0.5;cursor:not-allowed">
-        ${displayName}${statusText}
-      </button>`;
-    }
-    return `<button class="team-btn" onclick="showTeamForm('${t.id}','${displayName.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
-      ${displayName}${statusText}
-    </button>`;
-  }).join('');
-
-  setApp(`${header(false)}
-  <div class="content">
-    <div class="screen-title">👋 Qui êtes-vous ?</div>
-    <div class="screen-sub">Choisissez un slot libre et créez votre équipe (le nom sera verrouillé après validation)</div>
-    <div class="teams-grid">${grid}</div>
-  </div>`);
-}
-
-async function showTeamForm(id, currentName) {
-  // Garde-fou : si le slot est déjà verrouillé côté Firebase, on refuse l'accès au formulaire
-  if (db) {
-    try {
-      const snap = await db.ref(`/teams/${id}`).get();
-      if (snap.exists() && snap.val()?.members?.length > 0) {
-        showToast('⛔ Ce slot est déjà pris par une autre équipe.');
-        setTimeout(() => showTeamSelect(), 900);
-        return;
-      }
-    } catch(e) {}
-  }
-  const defaultName = currentName || TEAMS.find(t => t.id === id)?.name || id;
-  setApp(`${header(false)}
-  <div class="content">
-    <div class="screen-title">✏️ Votre équipe</div>
-    <div class="screen-sub">Slot : <strong>${id}</strong></div>
+    <div class="screen-title">👋 Créez votre équipe</div>
+    <div class="screen-sub">Renseignez les informations de votre équipe. Un numéro vous sera attribué automatiquement.</div>
 
     <div class="form-group">
       <label class="form-label" for="team-name-input">Nom de l'équipe</label>
       <input class="text-input" id="team-name-input" type="text"
-             placeholder="${defaultName}" value="${defaultName}"
-             maxlength="30" />
+             placeholder="Ex : Les Filtreurs Fous" maxlength="30" />
     </div>
 
     <div class="form-group">
@@ -688,29 +636,16 @@ async function showTeamForm(id, currentName) {
       </div>
     </div>
 
-    <button class="btn-validate" onclick="confirmTeam('${id}')">✅ Rejoindre</button>
-    <button class="btn-link btn-outline" style="margin-top:10px" onclick="showTeamSelect()">← Retour</button>
+    <button class="btn-validate" onclick="confirmTeam()">✅ Rejoindre</button>
   </div>`);
-
-  // Pre-fill if team already exists locally
-  const saved = localStorage.getItem('jf2026_team');
-  if (saved) {
-    try {
-      const t = JSON.parse(saved);
-      if (t.id === id && t.members) {
-        t.members.forEach((m, i) => {
-          const el = document.getElementById(`m${i+1}`);
-          if (el) el.value = m;
-        });
-      }
-    } catch(e) {}
-  }
 }
 
-async function confirmTeam(id) {
+// showTeamForm conservée pour compatibilité (non utilisée dans le nouveau flow)
+function showTeamForm(id, currentName) { showTeamSelect(); }
+
+async function confirmTeam() {
   const nameInput = document.getElementById('team-name-input');
-  const defaultName = TEAMS.find(t => t.id === id)?.name || id;
-  const name = nameInput?.value?.trim() || defaultName;
+  const name = nameInput?.value?.trim();
 
   const members = [];
   for (let i = 1; i <= 4; i++) {
@@ -718,29 +653,55 @@ async function confirmTeam(id) {
     if (val) members.push(val);
   }
 
+  if (!name) {
+    showToast('⚠️ Donnez un nom à votre équipe');
+    return;
+  }
   if (members.length === 0) {
     showToast('⚠️ Ajoutez au moins un membre');
     return;
   }
 
-  // Save team registration to Firebase — anti-overwrite: refuser si déjà inscrite
+  // Attribuer un slot libre aléatoirement via transaction atomique Firebase
+  // → le serveur choisit, aucun risque de doublon
   if (db) {
-    try {
-      const existing = await db.ref(`/teams/${id}`).get();
-      if (existing.exists() && existing.val()?.members?.length > 0) {
-        showToast('⛔ Ce slot vient d\'être pris par une autre équipe.');
-        setTimeout(() => showTeamSelect(), 1200);
-        return;
+    // Mélange aléatoire de la liste des slots
+    const shuffled = [...TEAMS].sort(() => Math.random() - 0.5);
+    let assignedId = null;
+    let assignedName = null;
+
+    for (const slot of shuffled) {
+      let taken = false;
+      try {
+        const result = await db.ref(`/teams/${slot.id}`).transaction(current => {
+          if (current !== null && current.members && current.members.length > 0) {
+            taken = true;
+            return; // slot pris → abandon transaction
+          }
+          return { id: slot.id, name, members, updatedAt: Date.now(), locked: true };
+        });
+        if (!taken && result.committed) {
+          assignedId = slot.id;
+          assignedName = slot.name;
+          break; // slot obtenu avec succès
+        }
+      } catch(e) {
+        // erreur réseau sur ce slot → on essaie le suivant
       }
-      await db.ref(`/teams/${id}`).set({
-        id, name, members, updatedAt: Date.now(), locked: true
-      });
-    } catch(e) {
-      showToast('Attention : erreur de connexion, continuez quand même.');
     }
+
+    if (!assignedId) {
+      showToast('⛔ Plus aucun slot disponible. Contactez un animateur.');
+      return;
+    }
+
+    selectTeam(assignedId, name, members);
+    return;
   }
 
-  selectTeam(id, name, members);
+  // Mode hors-ligne : slot local sans Firebase
+  const fallbackId = `E${String(Math.floor(Math.random()*40)+1).padStart(2,'0')}`;
+  selectTeam(fallbackId, name, members);
 }
 
 function selectTeam(id, name, members = []) {
