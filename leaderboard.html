@@ -529,6 +529,7 @@ async function resetScores() {
 
   try {
     await db.ref('/submissions').remove();
+    await db.ref('/quiz_submissions').remove();
     await db.ref('/teams').remove();
     const newSession = Date.now().toString();
     await db.ref('/gameSession').set(newSession);
