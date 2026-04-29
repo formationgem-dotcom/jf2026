@@ -165,7 +165,7 @@ const MAX_DIAG_PER_WORKSHOP = 30;
 const MAX_SERIAL_TOTAL = 45;
 const MAX_KEYWORD_TOTAL = 45;
 
-const TEAMS_LIST = Array.from({length:30},(_,i)=>({id:`E${String(i+1).padStart(2,'0')}`,name:`Équipe ${i+1}`}));
+const TEAMS_LIST = Array.from({length:40},(_,i)=>({id:`E${String(i+1).padStart(2,'0')}`,name:`Équipe ${i+1}`}));
 const ASP_PRODUCTS = Array.from({length:15},(_,i)=>`ASP-${String(i+1).padStart(2,'0')}`);
 const CAF_PRODUCTS = Array.from({length:15},(_,i)=>`CAF-${String(i+1).padStart(2,'0')}`);
 const MUL_PRODUCTS = Array.from({length:15},(_,i)=>`MUL-${String(i+1).padStart(2,'0')}`);
@@ -623,6 +623,50 @@ function exportXLSX() {
   XLSX.utils.book_append_sheet(wb, buildDetailSheet('asp', ASP_PRODUCTS), 'Aspiration');
   XLSX.utils.book_append_sheet(wb, buildDetailSheet('caf', CAF_PRODUCTS), 'Café');
   XLSX.utils.book_append_sheet(wb, buildDetailSheet('mul', MUL_PRODUCTS), 'Multimédia');
+
+  /* ── Onglet Parcours Client ── */
+  const QUIZ_QUESTIONS = ['PAR-Q1','PAR-Q2','PAR-Q3','PAR-Q4','PAR-Q5'];
+  const QUIZ_LABELS = [
+    'Q1 – Garantie légale de conformité',
+    'Q2 – Filtering vs SAV (cafetière)',
+    'Q3 – Hiérarchie des recours consommateur',
+    'Q4 – Diagnostic écouteurs sans fil',
+    'Q5 – Calcul de score Escape Gamme'
+  ];
+  const parHeaders = [
+    'Équipe','Membres',
+    ...QUIZ_QUESTIONS.map((q,i) => `${q} – Réponse (0=A…3=D)`),
+    ...QUIZ_QUESTIONS.map((q,i) => `${q} – Correct ?`),
+    ...QUIZ_QUESTIONS.map((q,i) => `${q} – Score`),
+    'Bonnes réponses','Score Total Parcours','Horodatage'
+  ];
+  const parRows = [];
+  Object.keys(currentQuizSubmissions).forEach(teamId => {
+    const sub = currentQuizSubmissions[teamId];
+    const teamInfo = currentTeamsData[teamId] || {};
+    const answers = sub.answers || [];
+    const answerMap = {};
+    answers.forEach(a => { answerMap[a.qId] = a; });
+    const reponses    = QUIZ_QUESTIONS.map(qId => answerMap[qId]?.selected ?? '—');
+    const corrects    = QUIZ_QUESTIONS.map(qId => answerMap[qId] ? (answerMap[qId].isCorrect ? 'Oui' : 'Non') : '—');
+    const subScores   = QUIZ_QUESTIONS.map(qId => answerMap[qId]?.score ?? '—');
+    const ts = sub.completedAt ? new Date(sub.completedAt).toLocaleString('fr-FR') : '—';
+    parRows.push([
+      teamInfo.name || teamId,
+      (teamInfo.members || []).join(', '),
+      ...reponses,
+      ...corrects,
+      ...subScores,
+      sub.correct ?? '—',
+      sub.score ?? '—',
+      ts
+    ]);
+  });
+  parRows.sort((a,b) => (b[16]||0) - (a[16]||0)); // tri par score total desc
+  const wsPar = XLSX.utils.aoa_to_sheet([parHeaders, ...parRows]);
+  const parColWidths = [22, 30, ...Array(15).fill(18), 16, 16, 18];
+  wsPar['!cols'] = parColWidths.map(w => ({wch: w}));
+  XLSX.utils.book_append_sheet(wb, wsPar, 'Parcours Client');
 
   /* ── Téléchargement ── */
   XLSX.writeFile(wb, 'resultats_filtering_game_' + new Date().toISOString().slice(0,10) + '.xlsx');
