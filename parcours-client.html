@@ -603,7 +603,6 @@ async function showFinalResults() {
   else if (totalScore < 0)  { emoji = '😬'; msg = 'Peut mieux faire'; }
 
   // Détail des réponses
-  const letters = ['A', 'B', 'C', 'D'];
   const detailHtml = quizState.answers.map((a, i) => {
     const q = QUIZ[i];
     const icon = a.isCorrect ? '✅' : '❌';
