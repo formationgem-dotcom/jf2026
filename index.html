@@ -885,14 +885,6 @@ async function showProduct(productId) {
 
   setApp(`${header()}
   <div class="content">
-    ${alreadyAnswered ? '' : `
-    <div class="timer-bar" id="timer-bar">
-      <span class="timer-icon">⏱️</span>
-      <div>
-        <div class="timer-display" id="countdown-display">05:00</div>
-        <div class="timer-label">Temps restant</div>
-      </div>
-    </div>`}
     <div>
       <span class="workshop-badge ${meta.badge}">${meta.name}</span>
     </div>
@@ -914,6 +906,14 @@ async function showProduct(productId) {
       ` : ''}
       <div class="symptom-text">« ${prod.symptom} »</div>
     </div>
+    ${alreadyAnswered ? '' : `
+    <div class="timer-bar" id="timer-bar">
+      <span class="timer-icon">⏱️</span>
+      <div>
+        <div class="timer-display" id="countdown-display">05:00</div>
+        <div class="timer-label">Temps restant</div>
+      </div>
+    </div>`}
     ${prevHtml}
     ${formHtml}
   </div>`);

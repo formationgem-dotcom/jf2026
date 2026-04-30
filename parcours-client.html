@@ -602,74 +602,88 @@ async function showFinalResults() {
   else if (totalScore <= -2) { emoji = '💪'; msg = 'Il faut travailler !'; }
   else if (totalScore < 0)  { emoji = '😬'; msg = 'Peut mieux faire'; }
 
-  const scoreClass = totalScore > 0 ? 'pos' : (totalScore < 0 ? 'neg' : 'zero');
-  const fmt = v => (v > 0 ? '+' : '') + v;
-
-  const summaryRows = quizState.answers.map((a, i) => {
+  // Détail des réponses
+  const letters = ['A', 'B', 'C', 'D'];
+  const detailHtml = quizState.answers.map((a, i) => {
     const q = QUIZ[i];
-    return `<div class="answer-row">
-      <div class="q-label">Q${i+1}</div>
-      <div class="q-text">${q.options[a.correct]}</div>
-      <div class="q-score ${a.score > 0 ? 'pos' : 'neg'}">${fmt(a.score)}</div>
+    const icon = a.isCorrect ? '✅' : '❌';
+    const pts = a.score > 0 ? `+${a.score}` : `${a.score}`;
+    return `<div style="background:var(--navy2);border-radius:10px;padding:10px 14px;margin-bottom:8px;font-size:13px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-weight:700;color:#aaa;">Q${i+1}</span>
+        <span style="font-weight:900;color:${a.isCorrect ? '#4caf50' : 'var(--red)'};">${icon} ${pts} pt</span>
+      </div>
+      <div style="color:#ccc;line-height:1.4;">${q.question.substring(0,80)}…</div>
+      <div style="font-size:12px;color:#888;margin-top:4px;">Votre réponse : ${letters[a.selected]} · Bonne : ${letters[a.correct]}</div>
     </div>`;
   }).join('');
 
-  // Save to Firebase
+  // Sauvegarde Firebase
   if (db && currentTeam) {
     try {
       await db.ref(`/quiz_submissions/par/${currentTeam.id}`).set({
+        team: currentTeam.id,
+        teamName: currentTeam.name,
         score: totalScore,
         correct,
-        total: QUIZ.length,
-        answers: quizState.answers,
-        completedAt: Date.now()
+        answers: quizState.answers.map(a => ({ selected: a.selected, correct: a.correct, isCorrect: a.isCorrect, score: a.score })),
+        submittedAt: Date.now()
       });
-    } catch(e) { console.warn('Firebase save failed', e); }
+    } catch(e) { console.warn('Firebase save error', e); }
   }
 
   setApp(`${header()}
   <div class="content">
-    <span class="workshop-badge">🎯 Parcours Client — Résultats</span>
-    <div class="result-card">
-      <div class="result-icon">${emoji}</div>
-      <div class="result-title">${msg}</div>
-      <div class="result-score-big ${scoreClass}">${fmt(totalScore)}</div>
-      <div class="result-label">${correct} / ${QUIZ.length} bonnes réponses</div>
-      <div class="answer-summary">${summaryRows}</div>
-      <button class="btn-home" onclick="window.location.href='index.html'">🏠 Retour à l'accueil</button>
-      <a class="btn-lb" href="leaderboard.html">🏆 Voir le classement</a>
+    <div style="text-align:center;padding:32px 0 24px;">
+      <div style="font-size:64px;margin-bottom:12px;">${emoji}</div>
+      <div style="font-size:22px;font-weight:900;color:var(--par2);margin-bottom:6px;">${msg}</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:20px;">Quiz terminé · ${correct}/${QUIZ.length} bonnes réponses</div>
+      <div style="display:inline-block;background:var(--navy2);border:3px solid var(--par2);border-radius:16px;padding:16px 32px;">
+        <div style="font-size:42px;font-weight:900;color:var(--par2);">${totalScore > 0 ? '+' : ''}${totalScore}</div>
+        <div style="font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:1px;">points</div>
+      </div>
     </div>
-    <div class="site-footer">
-      Escape Gamme · Journée du Filtering 2026 · Fnac Darty
+    <div style="margin-bottom:16px;">${detailHtml}</div>
+    <div style="background:rgba(41,182,246,.1);border:2px solid rgba(41,182,246,.3);border-radius:12px;padding:14px;text-align:center;font-size:13px;color:#80d4f7;margin-bottom:16px;">
+      ✅ Score enregistré dans le classement général
     </div>
+    <button class="btn-validate" onclick="showIntro()">← Retour à l'accueil</button>
   </div>`);
 }
 
-/* ═══════════════════════════════════════════
-   ALREADY DONE
-═══════════════════════════════════════════ */
 function showAlreadyDone(data) {
-  const fmt = v => (v > 0 ? '+' : '') + v;
-  const scoreClass = data.score > 0 ? 'pos' : (data.score < 0 ? 'neg' : 'zero');
+  stopTimer();
+  const pts = data.score;
+  const correct = data.correct ?? '?';
+  const total = QUIZ.length;
+  let emoji = '😐';
+  if (pts >= 4) emoji = '🏆';
+  else if (pts >= 2) emoji = '🎉';
+  else if (pts <= -2) emoji = '💪';
+  else if (pts < 0) emoji = '😬';
+
   setApp(`${header()}
   <div class="content">
-    <span class="workshop-badge">🎯 Parcours Client</span>
-    <div class="done-card" style="margin-top:20px">
-      <div style="font-size:40px;margin-bottom:12px">🔒</div>
-      <div style="font-size:18px;font-weight:900;color:var(--par2);margin-bottom:6px">Quiz déjà complété !</div>
-      <div style="font-size:13px;color:#aaa;margin-bottom:16px">Votre équipe a déjà soumis ses réponses pour l'atelier Parcours Client.</div>
-      <div style="font-size:40px;font-weight:900;margin-bottom:4px" class="result-score-big ${scoreClass}">${fmt(data.score)}</div>
-      <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px">${data.correct} / ${data.total} bonnes réponses</div>
-      <button class="btn-home" onclick="window.location.href='index.html'">🏠 Retour à l'accueil</button>
-      <a class="btn-lb" href="leaderboard.html">🏆 Voir le classement</a>
+    <div style="text-align:center;padding:32px 0 24px;">
+      <div style="font-size:64px;margin-bottom:12px;">${emoji}</div>
+      <div style="font-size:20px;font-weight:900;color:var(--par2);margin-bottom:6px;">Quiz déjà complété !</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:20px;">${correct}/${total} bonnes réponses enregistrées</div>
+      <div style="display:inline-block;background:var(--navy2);border:3px solid var(--par2);border-radius:16px;padding:16px 32px;">
+        <div style="font-size:42px;font-weight:900;color:var(--par2);">${pts > 0 ? '+' : ''}${pts}</div>
+        <div style="font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:1px;">points</div>
+      </div>
     </div>
+    <div style="background:rgba(192,0,0,.08);border:2px solid var(--red);border-radius:12px;padding:16px;text-align:center;font-size:13px;color:#ffaaaa;margin-bottom:16px;">
+      🔒 Votre équipe a déjà soumis ce quiz.<br>Il n'est pas possible de rejouer.
+    </div>
+    <button class="btn-validate" style="background:var(--navy2);color:var(--white);" onclick="showIntro()">← Retour</button>
   </div>`);
 }
 
-/* ═══════════════════════════════════════════
-   START
-═══════════════════════════════════════════ */
-window.addEventListener('load', init);
+window.addEventListener('DOMContentLoaded', init);
 </script>
+
+<div id="app"></div>
+<div id="toast"></div>
 </body>
 </html>
