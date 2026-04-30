@@ -372,103 +372,83 @@ async function checkAlreadyAnswered() {
 /* ═══════════════════════════════════════════
    TEAM SELECT
 ═══════════════════════════════════════════ */
-async function showTeamSelect() {
+function showTeamSelect() {
+  stopTimer();
   setApp(`${header()}
   <div class="content">
-    <div class="loading"><div class="spinner"></div><p>Chargement des équipes...</p></div>
-  </div>`);
+    <div class="screen-title">👋 Créez votre équipe</div>
+    <div class="screen-sub">Renseignez les informations de votre équipe. Un numéro vous sera attribué automatiquement.</div>
 
-  let registeredTeams = {};
-  if (db) {
-    try {
-      const snap = await db.ref('/teams').get();
-      if (snap.exists()) registeredTeams = snap.val();
-    } catch(e) {}
-  }
-
-  const grid = TEAMS.map(t => {
-    const reg = registeredTeams[t.id];
-    const displayName = reg ? reg.name : t.name;
-    const isTaken = !!reg;
-    const memberCount = reg?.members?.length || 0;
-    const statusText = isTaken
-      ? `<div style="font-size:11px;color:#999;margin-top:4px">🔒 ${memberCount > 0 ? memberCount + ' membre' + (memberCount > 1 ? 's' : '') : 'Inscrite'}</div>`
-      : `<div style="font-size:11px;color:var(--par2);margin-top:4px">Disponible</div>`;
-    if (isTaken) {
-      return `<button class="team-btn taken" disabled style="opacity:0.5;cursor:not-allowed">
-        ${displayName}${statusText}
-      </button>`;
-    }
-    return `<button class="team-btn" onclick="showTeamForm('${t.id}','${displayName.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
-      ${displayName}${statusText}
-    </button>`;
-  }).join('');
-
-  setApp(`${header()}
-  <div class="content">
-    <div class="screen-title">👋 Qui êtes-vous ?</div>
-    <div class="screen-sub">Choisissez votre équipe pour commencer le Parcours Client</div>
-    <div class="teams-grid">${grid}</div>
-  </div>`);
-}
-
-async function showTeamForm(id, currentName) {
-  if (db) {
-    try {
-      const snap = await db.ref(`/teams/${id}`).get();
-      if (snap.exists() && snap.val()?.members?.length > 0) {
-        showToast('⛔ Ce slot est déjà pris par une autre équipe.');
-        setTimeout(() => showTeamSelect(), 900);
-        return;
-      }
-    } catch(e) {}
-  }
-  const defaultName = currentName || TEAMS.find(t => t.id === id)?.name || id;
-  setApp(`${header()}
-  <div class="content">
-    <div class="screen-title">✏️ Votre équipe</div>
-    <div class="screen-sub">Slot : <strong>${id}</strong></div>
     <div class="form-group">
-      <label class="form-label">Nom de l'équipe</label>
-      <input class="text-input" id="team-name-input" type="text" placeholder="${defaultName}" value="${defaultName}" maxlength="30" />
+      <label class="form-label" for="team-name-input">Nom de l'équipe</label>
+      <input class="text-input" id="team-name-input" type="text"
+             placeholder="Ex : Les Filtreurs Fous" maxlength="30" />
     </div>
+
     <div class="form-group">
       <label class="form-label">Membres de l'équipe</label>
       <div class="members-list">
         <input class="text-input" id="m1" type="text" placeholder="Membre 1 (obligatoire)" maxlength="40" />
         <input class="text-input" id="m2" type="text" placeholder="Membre 2 (optionnel)" maxlength="40" />
         <input class="text-input" id="m3" type="text" placeholder="Membre 3 (optionnel)" maxlength="40" />
+        <input class="text-input" id="m4" type="text" placeholder="Membre 4 (optionnel)" maxlength="40" />
       </div>
     </div>
-    <button class="btn-validate" onclick="confirmTeam('${id}')">✅ Rejoindre</button>
-    <button class="btn-outline" onclick="showTeamSelect()">← Retour</button>
+
+    <button class="btn-validate" onclick="confirmTeam()">✅ Rejoindre</button>
   </div>`);
 }
 
-async function confirmTeam(id) {
+// Stub de compatibilité
+function showTeamForm(id, currentName) { showTeamSelect(); }
+
+async function confirmTeam() {
   const nameInput = document.getElementById('team-name-input');
-  const defaultName = TEAMS.find(t => t.id === id)?.name || id;
-  const name = nameInput?.value?.trim() || defaultName;
+  const name = nameInput?.value?.trim();
+
   const members = [];
-  for (let i = 1; i <= 3; i++) {
+  for (let i = 1; i <= 4; i++) {
     const val = document.getElementById(`m${i}`)?.value?.trim();
     if (val) members.push(val);
   }
+
+  if (!name) { showToast('⚠️ Donnez un nom à votre équipe'); return; }
   if (members.length === 0) { showToast('⚠️ Ajoutez au moins un membre'); return; }
 
   if (db) {
-    try {
-      const existing = await db.ref(`/teams/${id}`).get();
-      if (existing.exists() && existing.val()?.members?.length > 0) {
-        showToast('⛔ Ce slot vient d\'être pris par une autre équipe.');
-        setTimeout(() => showTeamSelect(), 1200);
-        return;
-      }
-      await db.ref(`/teams/${id}`).set({ id, name, members, updatedAt: Date.now(), locked: true });
-    } catch(e) { showToast('Connexion instable, continuez quand même.'); }
+    const shuffled = [...TEAMS].sort(() => Math.random() - 0.5);
+    let assignedId = null;
+
+    for (const slot of shuffled) {
+      let taken = false;
+      try {
+        const result = await db.ref(`/teams/${slot.id}`).transaction(current => {
+          if (current !== null && current.members && current.members.length > 0) {
+            taken = true;
+            return;
+          }
+          return { id: slot.id, name, members, updatedAt: Date.now(), locked: true };
+        });
+        if (!taken && result.committed) { assignedId = slot.id; break; }
+      } catch(e) {}
+    }
+
+    if (!assignedId) {
+      showToast('⛔ Plus aucun slot disponible. Contactez un animateur.');
+      return;
+    }
+
+    selectTeam(assignedId, name, members);
+    return;
   }
 
-  currentTeam = {id, name, members};
+  // Mode hors-ligne
+  const fallbackId = `E${String(Math.floor(Math.random()*40)+1).padStart(2,'0')}`;
+  selectTeam(fallbackId, name, members);
+}
+
+function selectTeam(id, name, members = []) {
+  currentTeam = { id, name, members };
   localStorage.setItem('jf2026_team', JSON.stringify(currentTeam));
   showToast(`✅ Équipe : ${name}`);
   showIntro();
