@@ -94,6 +94,20 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 .btn-validate:disabled { background: #444; color: #777; cursor: not-allowed; }
 .btn-validate:not(:disabled):hover { opacity: .9; }
 
+/* MINUTEUR 5 MIN */
+.timer-bar { display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(41,182,246,.15); border: 2px solid rgba(41,182,246,.4); border-radius: 12px; padding: 10px 16px; margin-bottom: 16px; transition: background .4s, border-color .4s; }
+.timer-display { font-size: 30px; font-weight: 900; letter-spacing: 3px; font-variant-numeric: tabular-nums; color: #29B6F6; transition: color .3s; }
+.timer-label { font-size: 11px; color: #80d4f7; text-transform: uppercase; letter-spacing: 1px; }
+.timer-bar.warning { background: rgba(255,193,7,.15); border-color: rgba(255,193,7,.5); }
+.timer-bar.warning .timer-display { color: #FFC107; }
+.timer-bar.warning .timer-label { color: #ffe082; }
+.timer-bar.danger { background: rgba(192,0,0,.18); border-color: rgba(192,0,0,.6); }
+.timer-bar.danger .timer-display { color: #FF5252; animation: timer-pulse 1s infinite; }
+.timer-bar.danger .timer-label { color: #ff8a80; }
+.timer-bar.expired { background: rgba(192,0,0,.25); border-color: #C00000; }
+.timer-bar.expired .timer-display { color: #C00000; }
+@keyframes timer-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
 /* FEEDBACK CARD */
 .feedback-card { border-radius: 14px; padding: 16px; margin-bottom: 16px; }
 .feedback-card.correct { background: rgba(39,174,96,.1); border: 2px solid var(--green); }
@@ -239,6 +253,65 @@ const QUIZ = [
    STATE
 ═══════════════════════════════════════════ */
 let db, currentTeam = null;
+let _timerInterval = null, _timerSeconds = 0;
+let _audioCtx = null;
+
+function _getAudioCtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return _audioCtx;
+}
+
+function _playBeep(freq = 880, duration = 0.08, volume = 0.35) {
+  try {
+    const ctx = _getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(volume, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration);
+  } catch(e) {}
+}
+
+function startTimer(seconds) {
+  stopTimer();
+  _timerSeconds = seconds;
+  _updateTimerUI();
+  _timerInterval = setInterval(() => {
+    _timerSeconds--;
+    _updateTimerUI();
+    if (_timerSeconds <= 0) { stopTimer(); _onTimerExpired(); }
+    else if (_timerSeconds <= 30) {
+      _playBeep(880, 0.08);
+      if (_timerSeconds <= 10) setTimeout(() => _playBeep(880, 0.08), 150);
+    }
+  }, 1000);
+}
+function stopTimer() {
+  if (_timerInterval) { clearInterval(_timerInterval); _timerInterval = null; }
+}
+function _updateTimerUI() {
+  const el = document.getElementById('countdown-display');
+  const bar = document.getElementById('timer-bar');
+  if (!el || !bar) return;
+  const m = Math.floor(Math.max(_timerSeconds, 0) / 60);
+  const s = Math.max(_timerSeconds, 0) % 60;
+  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  bar.classList.toggle('warning', _timerSeconds <= 60 && _timerSeconds > 30);
+  bar.classList.toggle('danger',  _timerSeconds <= 30 && _timerSeconds > 0);
+  bar.classList.toggle('expired', _timerSeconds <= 0);
+}
+function _onTimerExpired() {
+  const el = document.getElementById('countdown-display');
+  const bar = document.getElementById('timer-bar');
+  if (el) el.textContent = '00:00';
+  if (bar) bar.classList.add('expired');
+  showToast('⏰ Temps écoulé ! Finalisez votre réponse.', 4000);
+}
+
 let quizState = {
   currentQ: 0,         // index question en cours
   answers: [],          // {correct: bool, score: +1/-1} pour chaque question
@@ -405,6 +478,7 @@ async function confirmTeam(id) {
    INTRO
 ═══════════════════════════════════════════ */
 function showIntro() {
+  stopTimer();
   quizState = { currentQ: 0, answers: [], answered: false, selectedOption: null };
   setApp(`${header()}
   <div class="content">
@@ -445,6 +519,13 @@ function showQuestion(qIndex) {
 
   setApp(`${header()}
   <div class="content">
+    <div class="timer-bar" id="timer-bar">
+      <span style="font-size:20px">⏱️</span>
+      <div>
+        <div class="timer-display" id="countdown-display">05:00</div>
+        <div class="timer-label">Temps restant</div>
+      </div>
+    </div>
     <span class="workshop-badge">🎯 Parcours Client</span>
     <div class="progress-header">
       <span class="progress-label">Question ${qIndex + 1} / ${QUIZ.length}</span>
@@ -458,6 +539,7 @@ function showQuestion(qIndex) {
     <div class="options-list">${optionsHtml}</div>
     <button class="btn-validate" id="btn-validate" onclick="validateAnswer()" disabled>Valider ma réponse</button>
   </div>`);
+  startTimer(5 * 60);
 }
 
 function selectOption(i) {
@@ -471,6 +553,7 @@ function selectOption(i) {
 
 function validateAnswer() {
   if (quizState.selectedOption === null || quizState.answered) return;
+  stopTimer();
   quizState.answered = true;
   const q = QUIZ[quizState.currentQ];
   const selected = quizState.selectedOption;
@@ -507,6 +590,7 @@ function validateAnswer() {
    FINAL RESULTS
 ═══════════════════════════════════════════ */
 async function showFinalResults() {
+  stopTimer();
   const totalScore = quizState.answers.reduce((s, a) => s + a.score, 0);
   const correct = quizState.answers.filter(a => a.isCorrect).length;
   const letters = ['A', 'B', 'C', 'D'];
