@@ -1272,6 +1272,81 @@ function openQrScanner() {
       /* Choisir la méthode de décodage disponible */
       if (typeof BarcodeDetector !== 'undefined') {
         /* ── Méthode 1 : BarcodeDetector (natif Chrome/Android, aucune dépendance) ── */
+        _qrDetector = new BarcodeDetector({ formats: ['qr_code'] });
+        function tickBarcode() {
+          if (!_qrActive) return;
+          const now = Date.now();
+          if (now - _qrLastTick < 300) { _qrRaf = requestAnimationFrame(tickBarcode); return; }
+          _qrLastTick = now;
+          _qrDetector.detect(video).then(codes => {
+            if (!_qrActive) return;
+            if (codes.length > 0) {
+              const raw = codes[0].rawValue;
+              _handleQrRaw(raw, status);
+              return;
+            }
+            _qrRaf = requestAnimationFrame(tickBarcode);
+          }).catch(() => { if (_qrActive) _qrRaf = requestAnimationFrame(tickBarcode); });
+        }
+        tickBarcode();
+      } else if (typeof jsQR !== 'undefined') {
+        /* ── Méthode 2 : jsQR (fallback canvas) ── */
+        const canvas = document.getElementById('qr-canvas');
+        const ctx = canvas.getContext('2d');
+        function tickJsQR() {
+          if (!_qrActive) return;
+          const now = Date.now();
+          if (now - _qrLastTick < 200) { _qrRaf = requestAnimationFrame(tickJsQR); return; }
+          _qrLastTick = now;
+          if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            if (code) { _handleQrRaw(code.data, status); return; }
+          }
+          _qrRaf = requestAnimationFrame(tickJsQR);
+        }
+        tickJsQR();
+      } else {
+        status.textContent = '⚠️ Décodeur QR non disponible — rechargez la page';
+      }
+    });
+  }).catch(err => {
+    status.textContent = '📷 Accès caméra refusé : ' + (err.message || err);
+  });
+}
+
+function _handleQrRaw(raw, status) {
+  // Produit du jeu
+  const pid = _extractProductId(raw);
+  if (pid) { _onProductFound(pid); return; }
+
+  // QR code Parcours Client → redirection
+  if (raw.includes('parcours-client')) {
+    closeQrScanner();
+    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+    window.location.href = 'parcours-client.html';
+    return;
+  }
+
+  if (status) status.textContent = '⚠️ QR code non reconnu — réessayez';
+  if (status) setTimeout(() => { if (status) status.textContent = 'Recherche en cours…'; }, 2000);
+}
+
+function closeQrScanner() {
+  _qrActive = false;
+  if (_qrRaf) { cancelAnimationFrame(_qrRaf); _qrRaf = null; }
+  if (_qrStream) { _qrStream.getTracks().forEach(t => t.stop()); _qrStream = null; }
+  const modal = document.getElementById('qr-modal');
+  if (modal) modal.classList.remove('show');
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
         BarcodeDetector.getSupportedFormats().then(formats => {
           if (formats.includes('qr_code')) {
             _qrDetector = new BarcodeDetector({ formats: ['qr_code'] });
