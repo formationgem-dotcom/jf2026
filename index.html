@@ -154,6 +154,16 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
 .btn-validate:disabled { background: #444; color: #777; cursor: not-allowed; }
 .btn-validate:not(:disabled):hover { opacity: .9; }
 
+/* MINUTEUR 5 MIN */
+.timer-bar { display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(255,255,255,.07); border-radius: 12px; padding: 10px 16px; margin-bottom: 16px; }
+.timer-icon { font-size: 20px; }
+.timer-display { font-size: 28px; font-weight: 900; letter-spacing: 2px; font-variant-numeric: tabular-nums; color: var(--white); transition: color .3s; }
+.timer-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+.timer-bar.warning .timer-display { color: #FFC107; }
+.timer-bar.danger .timer-display { color: var(--red); animation: timer-pulse 1s infinite; }
+.timer-bar.expired .timer-display { color: var(--red); }
+@keyframes timer-pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+
 .already-answered { background: var(--navy2); border-radius: 12px; padding: 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #ccc; }
 .already-answered .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .dot-green { background: #4caf50; }
@@ -496,6 +506,42 @@ function videoModalEscHandler(e) { if (e.key === 'Escape') closeVideoModal(); }
 ═══════════════════════════════════════════ */
 let db, currentTeam = null, pendingProduct = null;
 let selectedAnswer = null; // "Filtering" ou "Réparation" en attente de validation
+let _timerInterval = null, _timerSeconds = 0;
+
+function startTimer(seconds) {
+  stopTimer();
+  _timerSeconds = seconds;
+  _updateTimerUI();
+  _timerInterval = setInterval(() => {
+    _timerSeconds--;
+    _updateTimerUI();
+    if (_timerSeconds <= 0) { stopTimer(); _onTimerExpired(); }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (_timerInterval) { clearInterval(_timerInterval); _timerInterval = null; }
+}
+
+function _updateTimerUI() {
+  const el = document.getElementById('countdown-display');
+  const bar = document.getElementById('timer-bar');
+  if (!el || !bar) return;
+  const m = Math.floor(Math.max(_timerSeconds,0) / 60);
+  const s = Math.max(_timerSeconds,0) % 60;
+  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  bar.classList.toggle('warning', _timerSeconds <= 60 && _timerSeconds > 30);
+  bar.classList.toggle('danger',  _timerSeconds <= 30 && _timerSeconds > 0);
+  bar.classList.toggle('expired', _timerSeconds <= 0);
+}
+
+function _onTimerExpired() {
+  const el = document.getElementById('countdown-display');
+  const bar = document.getElementById('timer-bar');
+  if (el) el.textContent = '00:00';
+  if (bar) bar.classList.add('expired');
+  showToast('⏰ Temps écoulé ! Finalisez votre réponse.', 4000);
+}
 
 function init() {
   try {
@@ -573,6 +619,7 @@ function showToast(msg, duration = 2500) {
 
 /* ---- SCREENS ---- */
 function showHome() {
+  stopTimer();
   selectedAnswer = null;
   const teamInfo = currentTeam
     ? `<div style="margin-top:16px">
@@ -615,6 +662,7 @@ function showHome() {
 
 // Affiche uniquement le formulaire d'inscription (le slot est attribué par le serveur)
 function showTeamSelect() {
+  stopTimer();
   setApp(`${header(false)}
   <div class="content">
     <div class="screen-title">👋 Créez votre équipe</div>
@@ -806,6 +854,14 @@ async function showProduct(productId) {
 
   setApp(`${header()}
   <div class="content">
+    ${alreadyAnswered ? '' : `
+    <div class="timer-bar" id="timer-bar">
+      <span class="timer-icon">⏱️</span>
+      <div>
+        <div class="timer-display" id="countdown-display">05:00</div>
+        <div class="timer-label">Temps restant</div>
+      </div>
+    </div>`}
     <div>
       <span class="workshop-badge ${meta.badge}">${meta.name}</span>
     </div>
@@ -831,8 +887,13 @@ async function showProduct(productId) {
     ${formHtml}
   </div>`);
 
-  // Attention accessible : focus non agressif
-  if (!alreadyAnswered) updateValidateBtn();
+  // Minuteur 5 min — démarre seulement si l'atelier n'est pas déjà validé
+  if (!alreadyAnswered) {
+    startTimer(5 * 60);
+    updateValidateBtn();
+  } else {
+    stopTimer();
+  }
 }
 
 function selectAnswer(answer) {
@@ -923,6 +984,7 @@ async function submitFinal(productId) {
 }
 
 function showResult(prod, answer, diagCorrect, diagScore, serialInput, serialCorrect, serialScore, keywordInput, keywordCorrect, keywordScore, total) {
+  stopTimer();
   const okCount = (diagCorrect ? 1 : 0) + (serialCorrect ? 1 : 0) + (keywordCorrect ? 1 : 0);
   let icon, titleClass, title;
   if (okCount === 3) {
@@ -1006,6 +1068,7 @@ function showResult(prod, answer, diagCorrect, diagScore, serialInput, serialCor
 }
 
 function showReglement() {
+  stopTimer();
   setApp(`${header(true)}
   <div class="content">
     <div class="screen-title">📜 Règlement du jeu</div>
