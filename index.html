@@ -1343,26 +1343,6 @@ function closeQrScanner() {
   if (modal) modal.classList.remove('show');
 }
 
-window.addEventListener('DOMContentLoaded', init);
-
-        BarcodeDetector.getSupportedFormats().then(formats => {
-          if (formats.includes('qr_code')) {
-            _qrDetector = new BarcodeDetector({ formats: ['qr_code'] });
-            status.textContent = '📷 Caméra active — pointez vers un QR code';
-            _qrRaf = requestAnimationFrame(_qrTickBD);
-          } else {
-            _startJsQRScan(status);
-          }
-        }).catch(() => _startJsQRScan(status));
-      } else {
-        _startJsQRScan(status);
-      }
-    });
-  }).catch(err => {
-    console.warn('QR cam:', err);
-    status.textContent = '⛔ Accès caméra refusé ou indisponible';
-  });
-}
 
 /* ── BarcodeDetector scan loop ── */
 async function _qrTickBD(ts) {
