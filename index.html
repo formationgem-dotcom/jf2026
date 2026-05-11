@@ -1344,9 +1344,7 @@ function closeQrScanner() {
 }
 
 window.addEventListener('DOMContentLoaded', init);
-</script>
-</body>
-</html>
+
         BarcodeDetector.getSupportedFormats().then(formats => {
           if (formats.includes('qr_code')) {
             _qrDetector = new BarcodeDetector({ formats: ['qr_code'] });
