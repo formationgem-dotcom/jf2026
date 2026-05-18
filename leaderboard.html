@@ -8,6 +8,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 :root {
   --navy: #1A1A2E; --navy2: #2E2E5E;
@@ -138,9 +139,10 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
     <div class="admin-sub">Panneau coordinateur</div>
     <div id="admin-body">
       <div class="pin-row">
-        <input type="password" class="pin-input" id="pin-input" maxlength="4" placeholder="PIN" oninput="checkPin()" />
+        <input type="password" class="pin-input" id="pin-input" maxlength="6" placeholder="PIN" onkeydown="if(event.key==='Enter')checkPin()" />
         <button class="pin-btn" onclick="checkPin()">OK</button>
       </div>
+      <div id="pin-error" style="font-size:12px;color:#ff6b6b;margin-top:8px;min-height:18px;text-align:center;"></div>
     </div>
     <button class="close-btn" onclick="toggleAdmin()">✕ Fermer</button>
   </div>
@@ -160,7 +162,40 @@ const FIREBASE_CONFIG = {
   appId: "1:505979371071:web:428fe599f2966e5997c28a"
 };
 
-const ADMIN_PIN = atob("MjAyNg==");
+const ADMIN_PIN_HASH = "576c85c584f60555c2a024cbb99dfbbdb5f58c3bdcf28dbc8ea315fd46a388f3"; // SHA-256 du PIN
+
+/* ---- ALERTES SÉCURITÉ ---- */
+const SECURITY_ALERT = {
+  emailjs_public_key:  "efsgwGSxei4v5CYUZ",
+  emailjs_service_id:  "service_6xfr495",
+  emailjs_template_id: "template_8asy5c6",
+  alert_email:         "leconte.jerome.darty@gmail.com",
+  make_webhook_url:    "REMPLACER_PAR_URL_WEBHOOK_MAKE"        // make.com → Scénario Webhook → URL
+};
+
+async function sendSecurityAlert() {
+  const now = new Date().toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'medium' });
+  const msg = `⚠️ JF2026 : 3 tentatives PIN échouées sur le panneau admin (leaderboard). Heure : ${now}`;
+
+  // — Email via EmailJS —
+  try {
+    emailjs.init({ publicKey: SECURITY_ALERT.emailjs_public_key });
+    await emailjs.send(SECURITY_ALERT.emailjs_service_id, SECURITY_ALERT.emailjs_template_id, {
+      to_email:   SECURITY_ALERT.alert_email,
+      event_time: now,
+      message:    msg
+    });
+  } catch(e) { console.warn('EmailJS :', e); }
+
+  // — SMS via Make.com webhook —
+  try {
+    await fetch(SECURITY_ALERT.make_webhook_url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, to: SECURITY_ALERT.alert_email, time: now })
+    });
+  } catch(e) { console.warn('Make webhook :', e); }
+}
 /* Max theoretical : diag 2*15 par atelier = 30 × 3 + série 1*45 + mot-clé SAVVY 1*45 = 180 pts */
 const MAX_DIAG_PER_WORKSHOP = 30;
 const MAX_SERIAL_TOTAL = 45;
@@ -172,6 +207,12 @@ const CAF_PRODUCTS = Array.from({length:15},(_,i)=>`CAF-${String(i+1).padStart(2
 const MUL_PRODUCTS = Array.from({length:15},(_,i)=>`MUL-${String(i+1).padStart(2,'0')}`);
 
 let db, adminUnlocked = false;
+let pinAttempts = 0, pinLockUntil = 0;
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
 let currentSubmissions = {};
 let currentTeamsData = {};
 let currentQuizSubmissions = {};
@@ -365,15 +406,40 @@ function toggleAdmin() {
     adminUnlocked = false;
     document.getElementById('admin-body').innerHTML = `
       <div class="pin-row">
-        <input type="password" class="pin-input" id="pin-input" maxlength="4" placeholder="PIN" oninput="checkPin()" />
+        <input type="password" class="pin-input" id="pin-input" maxlength="6" placeholder="PIN" onkeydown="if(event.key==='Enter')checkPin()" />
         <button class="pin-btn" onclick="checkPin()">OK</button>
-      </div>`;
+      </div>
+      <div id="pin-error" style="font-size:12px;color:#ff6b6b;margin-top:8px;min-height:18px;text-align:center;"></div>`;
   }
 }
 
-function checkPin() {
+async function checkPin() {
+  const now = Date.now();
+  const errEl = document.getElementById('pin-error');
+  if (now < pinLockUntil) {
+    const secs = Math.ceil((pinLockUntil - now) / 1000);
+    if (errEl) errEl.textContent = `⏳ Bloqué. Réessaie dans ${secs}s.`;
+    return;
+  }
   const pin = document.getElementById('pin-input')?.value;
-  if (pin === ADMIN_PIN) showAdminPanel();
+  if (!pin) return;
+  const hash = await sha256(pin);
+  if (hash === ADMIN_PIN_HASH) {
+    pinAttempts = 0;
+    showAdminPanel();
+  } else {
+    pinAttempts++;
+    document.getElementById('pin-input').value = '';
+    if (pinAttempts >= 3) {
+      pinLockUntil = Date.now() + 30000;
+      pinAttempts = 0;
+      if (errEl) errEl.textContent = '🔒 3 tentatives échouées — bloqué 30 secondes.';
+      sendSecurityAlert();
+    } else {
+      const left = 3 - pinAttempts;
+      if (errEl) errEl.textContent = `❌ PIN incorrect — ${left} essai${left > 1 ? 's' : ''} restant${left > 1 ? 's' : ''}.`;
+    }
+  }
 }
 
 function showAdminPanel() {
