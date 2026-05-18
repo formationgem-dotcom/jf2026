@@ -175,7 +175,27 @@ const SECURITY_ALERT = {
 
 async function sendSecurityAlert() {
   const now = new Date().toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'medium' });
-  const msg = `⚠️ JF2026 : 3 tentatives PIN échouées sur le panneau admin (leaderboard). Heure : ${now}`;
+
+  // — Récupération de l'IP publique —
+  let ip = 'inconnue';
+  try {
+    const res = await fetch('https://api.ipify.org?format=json');
+    const data = await res.json();
+    ip = data.ip || 'inconnue';
+  } catch(e) { console.warn('IP fetch :', e); }
+
+  // — Récupération de l'équipe enregistrée sur l'appareil —
+  let teamInfo = 'aucune équipe enregistrée sur cet appareil';
+  try {
+    const raw = localStorage.getItem('jf2026_team');
+    if (raw) {
+      const team = JSON.parse(raw);
+      const members = Array.isArray(team.members) && team.members.length ? team.members.join(', ') : '—';
+      teamInfo = `${team.id} — ${team.name} (membres : ${members})`;
+    }
+  } catch(e) { console.warn('Team localStorage :', e); }
+
+  const msg = `⚠️ JF2026 : 3 tentatives PIN échouées sur le panneau admin. Heure : ${now} — IP : ${ip} — Équipe : ${teamInfo}`;
 
   // — Email via EmailJS —
   try {
@@ -183,6 +203,8 @@ async function sendSecurityAlert() {
     await emailjs.send(SECURITY_ALERT.emailjs_service_id, SECURITY_ALERT.emailjs_template_id, {
       to_email:   SECURITY_ALERT.alert_email,
       event_time: now,
+      ip_address: ip,
+      team_info:  teamInfo,
       message:    msg
     });
   } catch(e) { console.warn('EmailJS :', e); }
@@ -192,7 +214,7 @@ async function sendSecurityAlert() {
     await fetch(SECURITY_ALERT.make_webhook_url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg, to: SECURITY_ALERT.alert_email, time: now })
+      body: JSON.stringify({ message: msg, to: SECURITY_ALERT.alert_email, time: now, ip: ip, team: teamInfo })
     });
   } catch(e) { console.warn('Make webhook :', e); }
 }
