@@ -485,6 +485,7 @@ async function editTeam(teamId) {
 }
 
 async function saveTeamEdit(teamId) {
+  if (!adminUnlocked) { alert('⛔ Accès refusé — panneau admin requis.'); return; }
   if (!db) return;
   const name = document.getElementById('edit-team-name')?.value?.trim();
   const membersRaw = document.getElementById('edit-team-members')?.value?.trim();
@@ -500,6 +501,7 @@ async function saveTeamEdit(teamId) {
 }
 
 async function unlockTeam(teamId) {
+  if (!adminUnlocked) { alert('⛔ Accès refusé — panneau admin requis.'); return; }
   if (!db) return;
   if (!confirm(`Déverrouiller le slot ${teamId} ? L'équipe pourra modifier son nom.`)) return;
   try {
@@ -511,6 +513,7 @@ async function unlockTeam(teamId) {
 }
 
 async function deleteTeam(teamId) {
+  if (!adminUnlocked) { alert('⛔ Accès refusé — panneau admin requis.'); return; }
   if (!db) return;
   if (!confirm(`Supprimer définitivement le slot ${teamId} ? Cette action est irréversible.`)) return;
   try {
@@ -523,6 +526,7 @@ async function deleteTeam(teamId) {
 
 /* ---- RESET COMPLET (scores + équipes + invalidation des sessions locales) ---- */
 async function resetScores() {
+  if (!adminUnlocked) { alert('⛔ Accès refusé — panneau admin requis.'); return; }
   if (!db) { alert('Firebase non connecté.'); return; }
   const confirmed = confirm('⚠️ ATTENTION\n\nCette action va :\n• Effacer TOUS les scores\n• Supprimer TOUTES les équipes enregistrées\n• Forcer tous les téléphones à se réinscrire\n\nContinuer ?');
   if (!confirmed) return;
