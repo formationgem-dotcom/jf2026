@@ -6,6 +6,7 @@
 <title>Parcours Client — Filtering Game JF2026</title>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <style>
 :root {
   --navy: #1A1A2E; --navy2: #2E2E5E;
@@ -350,6 +351,7 @@ function init() {
   try {
     firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.database();
+    firebase.auth().signInAnonymously().catch(() => {});
   } catch(e) { db = null; }
 
   const saved = localStorage.getItem('jf2026_team');
