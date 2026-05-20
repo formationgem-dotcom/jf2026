@@ -1401,4 +1401,62 @@ function _qrTickJsQR(ts) {
   _qrLastTick = ts;
   const video = document.getElementById('qr-video');
   const canvas = document.getElementById('qr-canvas');
-  if (!video || !canvas || video
+  if (!video || !canvas || video.readyState < video.HAVE_ENOUGH_DATA) {
+    _qrRaf = requestAnimationFrame(_qrTickJsQR);
+    return;
+  }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const code = jsQR(imageData.data, imageData.width, imageData.height);
+  if (code) { _handleQrRaw(code.data, document.getElementById('qr-status')); return; }
+  _qrRaf = requestAnimationFrame(_qrTickJsQR);
+}
+
+/* ── Démarrage de l'application ── */
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
+  }
+}
+
+function _qrTickJsQR(ts) {
+  if (!_qrActive) return;
+  if (ts - _qrLastTick < 250) { _qrRaf = requestAnimationFrame(_qrTickJsQR); return; }
+  _qrLastTick = ts;
+  const video = document.getElementById('qr-video');
+  const canvas = document.getElementById('qr-canvas');
+  if (!video || !canvas || video utilisez un autre navigateur ou activez le Wi-Fi';
+      }
+    }, 2000);
+  }
+}
+
+function _qrTickJsQR(ts) {
+  if (!_qrActive) return;
+  if (ts - _qrLastTick < 250) { _qrRaf = requestAnimationFrame(_qrTickJsQR); return; }
+  _qrLastTick = ts;
+  const video = document.getElementById('qr-video');
+  const canvas = document.getElementById('qr-canvas');
+  if (!video || !canvas || video.readyState < video.HAVE_ENOUGH_DATA) {
+    _qrRaf = requestAnimationFrame(_qrTickJsQR);
+    return;
+  }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const code = jsQR(imageData.data, imageData.width, imageData.height);
+  if (code) { _handleQrRaw(code.data, document.getElementById('qr-status')); return; }
+  _qrRaf = requestAnimationFrame(_qrTickJsQR);
+}
+
+/* ── Démarrage de l'application ── */
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
