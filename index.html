@@ -326,53 +326,53 @@ const TEAMS = Array.from({length: 40}, (_, i) => ({
 const F = "Filtering", R = "Réparation";
 const PRODUCTS = {
   /* ──────── ATELIER ASPIRATION ──────── */
-  "ASP-01":{workshop:"asp",type:"Aspirateur balai Dyson V8", serial:"SN-ASP-001", keyword:"MOT-ASP-001",
-    symptom:"Mon Dyson n'aspire plus du tout depuis ce matin. Il fait du bruit normalement mais ne ramasse absolument plus rien, même des miettes.",
-    correct:F,points:5,explanation:"Filtre saturé ou bac plein non contrôlé à l'accueil — vérifier le filtre et le bac à poussière dès l'accueil résout le problème immédiatement."},
-  "ASP-02":{workshop:"asp",type:"Aspirateur balai", serial:"SN-ASP-002", keyword:"MOT-ASP-002",
-    symptom:"L'aspiration de mon balai est devenue vraiment très faible. Je dois passer cinq ou six fois au même endroit pour ramasser quelque chose.",
-    correct:F,points:5,explanation:"Flexible partiellement obstrué (chaussette, poussière compactée) — inspecter et déboucher le flexible en magasin. Résolu sur place."},
+  "ASP-01":{workshop:"asp",type:"Aspirateur balai Dyson V8", serial:"Z3T-EU-RHK7012A", keyword:"SOCLES",
+    symptom:"Bonjour ! J'ai un problème avec mon aspirateur Dyson. Il n'aspire plus du tout ! Le moteur tourne, je l'entends bien, mais impossible de ramasser quoi que ce soit. C'est comme s'il soufflait dans le vide. Vous pouvez m'aider ?",
+    correct:F,points:5,explanation:"Filtre saturé ou bac plein non contrôlé à l'accueil — vérifier le filtre et le bac à poussière dès l'accueil résout le problème immédiatement. Filtering magasin."},
+  "ASP-02":{workshop:"asp",type:"Aspirateur balai Rowenta (chargeur)", serial:"3918", keyword:"BALAIS",
+    symptom:"Bonjour ! Mon aspirateur Rowenta ne se recharge plus du tout. Je branche le chargeur mais le voyant ne s'allume jamais, la batterie reste vide. Ça dure depuis deux jours, je ne sais pas si c'est le chargeur ou l'appareil.",
+    correct:F,points:5,explanation:"Tension de sortie nulle — tester le transformateur avec le multimètre + remplacement du chargeur en magasin. Filtering magasin."},
   "ASP-03":{workshop:"asp",type:"Robot aspirateur laveur Ecovacs T50 PRO OMNI", serial:"E02B35083G1FPP9A0026", keyword:"BROSSE",
     vimeoId:"1185440837", videoRatio:"1/1",
-    symptom:"Mon robot aspirateur dégage une odeur de moisi très désagréable à chaque passage. C'est insupportable, surtout dans le salon.",
+    symptom:"Bonjour. Depuis quelques jours, mon robot aspirateur dégage une odeur horrible quand il tourne… ça sent vraiment le moisi et l'humidité dans tout le salon. Je ne sais pas d'où ça vient, c'est récent.",
     correct:F,points:5,explanation:"Temps de séchage des serpillières / rouleaux trop court — modifier le paramétrage de séchage dans l'application. Filtering magasin."},
-  "ASP-04":{workshop:"asp",type:"Aspirateur balai/laveur Bissell", serial:"SN-ASP-004", keyword:"MOT-ASP-004",
-    symptom:"Mon aspirateur fait un bruit terrible depuis hier, comme un moteur qui va lâcher. C'est vraiment anormal, ça ne ressemble à rien de ce que j'ai entendu avant.",
-    correct:R,points:3,explanation:"Moteur oxydé suite à un contact avec de l'eau — récupérer le moteur en pièce de démonstration, envoi en atelier de réparation obligatoire."},
-  "ASP-05":{workshop:"asp",type:"Aspirateur balai/laveur Tineco", serial:"SN-ASP-005", keyword:"MOT-ASP-005",
-    symptom:"Mon balai laveur Tineco n'aspire plus correctement et laisse des traces partout sur le sol. J'ai tout nettoyé, changé le filtre, mais rien n'y fait.",
-    correct:R,points:3,explanation:"Moteur d'aspiration HS — tester chaque moteur séparément pour identifier le défaillant, envoi en atelier pour remplacement."},
-  "ASP-06":{workshop:"asp",type:"Robot aspirateur laveur Roborock", serial:"SN-ASP-006", keyword:"MOT-ASP-006",
-    symptom:"Mon robot Roborock clignote et ne récupère plus l'eau sale depuis sa station. Il s'arrête en cours de cycle sans finir le nettoyage.",
-    correct:F,points:5,explanation:"Évier / station de nettoyage obstrué — déboucher l'évier de la station de base. Résolu en magasin."},
-  "ASP-07":{workshop:"asp",type:"Aspirateur balai Rowenta", serial:"SN-ASP-007", keyword:"MOT-ASP-007",
-    symptom:"Mon balai Rowenta ne se recharge plus du tout. Je l'ai laissé toute la nuit sur le chargeur mais le voyant ne s'allume même pas.",
-    correct:F,points:5,explanation:"Test croisé chargeur + batterie au comptoir pour isoler le défaut — chargeur HS identifié → remplacement chargeur en magasin."},
+  "ASP-04":{workshop:"asp",type:"Robot aspirateur iRobot MAX 700 combo", serial:"X188040D250823N101088", keyword:"POUSSE",
+    symptom:"Bonjour ! Mon aspirateur iRobot m'affiche un message en boucle : « Veuillez vider le bac et le bac à eau sale et le remettre sur le quai ». Je l'ai vidé plusieurs fois, mais l'erreur revient. Je ne sais plus quoi faire.",
+    correct:F,points:5,explanation:"Bouchon entrée d'air — débouchage entrée d'air. Filtering magasin."},
+  "ASP-05":{workshop:"asp",type:"Aspirateur balai/laveur Tineco FLOOR ONE i5 STRETCH PLUS", serial:"TXLFBSPFJ3762", keyword:"EXPEDI",
+    symptom:"Bonjour ! Mon aspirateur laveur laisse des traces partout après son passage. Ça empire à chaque utilisation. On dirait qu'il étale la saleté au lieu de la ramasser. Il y a forcément quelque chose qui ne va pas.",
+    correct:R,points:3,explanation:"Moteur d'aspiration HS — écouter si le moteur d'aspiration démarre. Envoi en SAV."},
+  "ASP-06":{workshop:"asp",type:"Robot laveur de vitres Ecovacs WINBOT MINI", serial:"4T09J0G30620", keyword:"EXPEDI",
+    symptom:"Bonjour. Mon robot laveur de vitres tourne toujours dans le même sens et ne couvre pas toute la surface. Il semble bloqué, comme si une roulette ne fonctionnait plus correctement. Il ne nettoie presque rien.",
+    correct:R,points:3,explanation:"Une roue ne tourne pas — envoi en SAV."},
+  "ASP-07":{workshop:"asp",type:"Aspirateur balai/laveur Bissell b3641n / HF3", serial:"2320600551e", keyword:"EXPEDI",
+    symptom:"Bonjour ! Mon aspirateur laveur Bissell fait un bruit énorme, vraiment anormal, et il n'aspire plus l'eau du tout. Le moteur semble forcer. Je l'ai arrêté immédiatement, j'ai peur de l'abîmer davantage.",
+    correct:R,points:3,explanation:"Moteur HS et flexible coupé — envoi en SAV."},
   "ASP-08":{workshop:"asp",type:"Aspirateur traîneau Miele SGSK3", serial:"00/156351386", keyword:"PROPRE",
     vimeoId:"1186131263", videoRatio:"16/9",
-    symptom:"J'ai changé le sac de mon aspirateur Miele il y a deux jours, mais depuis, il aspire beaucoup moins bien qu'avant. C'est bizarre, le sac est tout neuf.",
-    correct:F,points:5,explanation:"Sac mal positionné ou support sac défaillant — vérifier le positionnement du sac et l'état du support. Résolu en magasin."},
-  "ASP-09":{workshop:"asp",type:"Aspirateur balai/laveur", serial:"SN-ASP-009", keyword:"MOT-ASP-009",
-    symptom:"Mon balai laveur laisse des traces et le sol semble encore sale après son passage. Pourtant j'ai nettoyé l'appareil et changé l'eau.",
-    correct:F,points:5,explanation:"Filtre humide ou encrassé — vérifier l'état du filtre, nettoyer ou remplacer si nécessaire. Résolu en magasin."},
-  "ASP-10":{workshop:"asp",type:"Aspirateur balai Dyson V16", serial:"7RD-EU-UMC3118A", keyword:"MOT-ASP-010",
-    symptom:"Le laser de ma brosse Dyson V16 ne s'allume plus du tout. Je ne vois plus la lumière verte sur le sol pour repérer les poussières.",
-    correct:F,points:5,explanation:"Laser désactivé dans les paramètres — activer le laser via le menu de l'appareil ou l'application Dyson. Résolu en magasin."},
-  "ASP-11":{workshop:"asp",type:"Aspirateur balai Rowenta", serial:"SN-ASP-011", keyword:"MOT-ASP-011",
-    symptom:"La brosse motorisée de mon balai Rowenta ne tourne plus du tout. Je l'ai démontée et bien nettoyée, mais elle reste immobile au démarrage.",
-    correct:R,points:3,explanation:"Brosse HS — test croisé au comptoir requis. Inviter le client à déposer le produit complet, envoi en atelier SAV si brosse défaillante confirmée."},
-  "ASP-12":{workshop:"asp",type:"Robot aspirateur Ecovacs", serial:"SN-ASP-012", keyword:"MOT-ASP-012",
-    symptom:"Mon robot aspirateur fait des allers-retours aléatoires et ne suit plus du tout le plan de ma maison. La cartographie est complètement fausse.",
-    correct:F,points:5,explanation:"Environnement réfléchissant (baie vitrée, miroir) perturbant les capteurs — isoler les zones réfléchissantes et refaire la cartographie. Filtering magasin."},
-  "ASP-13":{workshop:"asp",type:"Robot aspirateur", serial:"SN-ASP-013", keyword:"MOT-ASP-013",
-    symptom:"À compléter avant l'événement.",
-    correct:F,points:5,explanation:"À compléter avant l'événement."},
-  "ASP-14":{workshop:"asp",type:"Robot laveur", serial:"SN-ASP-014", keyword:"MOT-ASP-014",
-    symptom:"À compléter avant l'événement.",
-    correct:F,points:5,explanation:"À compléter avant l'événement."},
-  "ASP-15":{workshop:"asp",type:"Robot aspirateur", serial:"SN-ASP-015", keyword:"MOT-ASP-015",
-    symptom:"À compléter avant l'événement.",
-    correct:F,points:5,explanation:"À compléter avant l'événement."},
+    symptom:"Bonjour. Je viens de mettre un nouveau sac dans mon Miele, et depuis, l'aspiration est beaucoup moins forte qu'avant. Pourtant le sac est tout neuf ! C'est la première fois que ça m'arrive, c'est bizarre non ?",
+    correct:F,points:5,explanation:"Sac mal positionné ou support sac défaillant — vérifier le positionnement du sac et l'état du support. Filtering magasin."},
+  "ASP-09":{workshop:"asp",type:"Aspirateur traîneau Miele SGDP3", serial:"00/157132668", keyword:"ASPIRA",
+    symptom:"Bonjour. Mon aspirateur Miele émet un sifflement aigu dès que je l'utilise. Ça n'existait pas avant. Il aspire toujours mais ce bruit est vraiment gênant — je ne sais pas si c'est normal ou s'il y a un problème.",
+    correct:F,points:5,explanation:"Filtre HS — remplacement du filtre arrière. Filtering magasin."},
+  "ASP-10":{workshop:"asp",type:"Aspirateur balai Dyson V16", serial:"7RD-EU-UMC3118A", keyword:"PERCOLO",
+    symptom:"Bonjour. Sur mon aspirateur Dyson, il y a normalement un laser sur la brosse qui éclaire le sol pour repérer les poussières. Eh bien ce laser ne fonctionne plus du tout, plus aucune lumière. Du coup je ne vois plus ce que j'aspire.",
+    correct:F,points:5,explanation:"Laser désactivé — activer le laser de la brosse via les menus ou l'application Dyson. Filtering magasin."},
+  "ASP-11":{workshop:"asp",type:"Aspirateur balai Rowenta GZ7035WO", serial:"2425", keyword:"CLIENT",
+    symptom:"Bonjour ! Mon aspirateur Rowenta s'est mis à parler en anglais, et les commandes vocales ne répondent plus correctement. Je n'ai rien changé, ça a dû se modifier tout seul. Comment je fais pour revenir en français ?",
+    correct:F,points:5,explanation:"Dû à un changement de poignée en SAV ou désactivation par inadvertance — lire la notice pour réactiver les commandes vocales ou changer la langue. Filtering magasin."},
+  "ASP-12":{workshop:"asp",type:"Aspirateur balai/laveur Bissell CrossWave 17132", serial:"2127101739E", keyword:"EXPEDI",
+    symptom:"Bonjour ! Mon aspirateur laveur Bissell ne nettoie plus correctement. Il laisse de l'eau sur le sol après son passage et les traces restent visibles une fois sec. Ça marche de moins en moins bien depuis quelques jours.",
+    correct:F,points:5,explanation:"Filtre abîmé — remplacement du filtre. Filtering magasin."},
+  "ASP-13":{workshop:"asp",type:"Aspirateur balai Rowenta RH9959", serial:"4321", keyword:"ENVOIS",
+    symptom:"Bonjour ! Impossible d'enlever le bac à poussière de mon aspirateur Rowenta. Il est complètement coincé, je tire fort mais il ne bouge pas du tout. J'ai peur de casser quelque chose si je force encore davantage.",
+    correct:F,points:5,explanation:"A été remis sans le filtre — retirer le cache pour débloquer le réservoir. Filtering magasin."},
+  "ASP-14":{workshop:"asp",type:"Aspirateur balai Hoover HF201H 011", serial:"39401038 2410 2523", keyword:"REGLER",
+    symptom:"Bonjour ! Mon aspirateur Hoover a un voyant rouge qui s'est allumé et maintenant il ne démarre plus du tout. J'appuie sur le bouton d'allumage, mais rien ne se passe. Je ne comprends pas ce que signifie ce voyant.",
+    correct:F,points:5,explanation:"Switch mal positionné ou filtre du réservoir non verrouillé — verrouiller le filtre dans le bac et repositionner le switch. Filtering magasin."},
+  "ASP-15":{workshop:"asp",type:"Humidificateur Dyson PH3A", serial:"PH3A-EU-UMA0717A", keyword:"EXPEDI",
+    symptom:"Bonjour. Mon humidificateur Dyson ne s'allume plus du tout. L'écran reste noir, aucune réaction quand j'appuie sur le bouton. Je l'ai branché sur une autre prise, rien ne se passe. Il fonctionnait très bien la semaine dernière.",
+    correct:R,points:3,explanation:"Écran HS — envoi en SAV."},
 
   /* ──────── ATELIER BROYEURS CAFÉ ──────── */
   "CAF-01":{workshop:"caf",type:"Expresso automatique De’Longhi ECAM 21.113.B", serial:"213199DU2501103051", keyword:"AROMES",
@@ -1392,40 +1392,4 @@ function _qrTickJsQR(ts) {
   _qrLastTick = ts;
   const video = document.getElementById('qr-video');
   const canvas = document.getElementById('qr-canvas');
-  if (!video || !canvas || video.readyState < 2 || video.videoWidth === 0) {
-    _qrRaf = requestAnimationFrame(_qrTickJsQR); return;
-  }
-  const MAX = 640;
-  const scale = Math.min(1, MAX / Math.max(video.videoWidth, video.videoHeight));
-  canvas.width  = Math.round(video.videoWidth  * scale);
-  canvas.height = Math.round(video.videoHeight * scale);
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const result = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'attemptBoth' });
-  if (result && result.data) {
-    const pid = _extractProductId(result.data);
-    if (pid) { _onProductFound(pid); return; }
-    else {
-      const st = document.getElementById('qr-status');
-      if (st) st.textContent = '⚠️ QR lu mais inconnu — cherchez un QR produit JF2026';
-    }
-  }
-  _qrRaf = requestAnimationFrame(_qrTickJsQR);
-}
-
-function closeQrScanner() {
-  _qrActive = false;
-  _qrDetector = null;
-  if (_qrRaf) { cancelAnimationFrame(_qrRaf); _qrRaf = null; }
-  if (_qrStream) { _qrStream.getTracks().forEach(t => t.stop()); _qrStream = null; }
-  const video = document.getElementById('qr-video');
-  if (video) video.srcObject = null;
-  const modal = document.getElementById('qr-modal');
-  if (modal) modal.classList.remove('show');
-}
-
-init();
-</script>
-</body>
-</html>
+  if (!video || !canvas || video
