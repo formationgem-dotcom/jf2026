@@ -333,7 +333,6 @@ const PRODUCTS = {
     symptom:"Bonjour ! Mon aspirateur Rowenta ne se recharge plus du tout. Je branche le chargeur mais le voyant ne s'allume jamais, la batterie reste vide. Ça dure depuis deux jours, je ne sais pas si c'est le chargeur ou l'appareil.",
     correct:F,points:5,explanation:"Tension de sortie nulle — tester le transformateur avec le multimètre + remplacement du chargeur en magasin. Filtering magasin."},
   "ASP-03":{workshop:"asp",type:"Robot aspirateur laveur Ecovacs T50 PRO OMNI", serial:"E02B35083G1FPP9A0026", keyword:"BROSSE",
-    vimeoId:"1185440837", videoRatio:"1/1",
     symptom:"Bonjour. Depuis quelques jours, mon robot aspirateur dégage une odeur horrible quand il tourne… ça sent vraiment le moisi et l'humidité dans tout le salon. Je ne sais pas d'où ça vient, c'est récent.",
     correct:F,points:5,explanation:"Temps de séchage des serpillières / rouleaux trop court — modifier le paramétrage de séchage dans l'application. Filtering magasin."},
   "ASP-04":{workshop:"asp",type:"Robot aspirateur iRobot MAX 700 combo", serial:"X188040D250823N101088", keyword:"POUSSE",
@@ -349,7 +348,6 @@ const PRODUCTS = {
     symptom:"Bonjour ! Mon aspirateur laveur Bissell fait un bruit énorme, vraiment anormal, et il n'aspire plus l'eau du tout. Le moteur semble forcer. Je l'ai arrêté immédiatement, j'ai peur de l'abîmer davantage.",
     correct:R,points:3,explanation:"Moteur HS et flexible coupé — envoi en SAV."},
   "ASP-08":{workshop:"asp",type:"Aspirateur traîneau Miele SGSK3", serial:"00/156351386", keyword:"PROPRE",
-    vimeoId:"1186131263", videoRatio:"16/9",
     symptom:"Bonjour. Je viens de mettre un nouveau sac dans mon Miele, et depuis, l'aspiration est beaucoup moins forte qu'avant. Pourtant le sac est tout neuf ! C'est la première fois que ça m'arrive, c'est bizarre non ?",
     correct:F,points:5,explanation:"Sac mal positionné ou support sac défaillant — vérifier le positionnement du sac et l'état du support. Filtering magasin."},
   "ASP-09":{workshop:"asp",type:"Aspirateur traîneau Miele SGDP3", serial:"00/157132668", keyword:"ASPIRA",
@@ -906,18 +904,19 @@ async function showProduct(productId) {
     <div class="product-type">${prod.type}</div>
     <div class="symptom-card ${meta.cls}">
       <div class="symptom-label">📢 Ce que dit le client</div>
-      ${prod.vimeoId ? `
-        <div class="video-thumb ${prod.videoRatio === '1/1' ? 'square' : ''}"
-             onclick="openVideoModal('${prod.vimeoId}','${prod.videoRatio || '16/9'}')"
-             role="button" tabindex="0"
-             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openVideoModal('${prod.vimeoId}','${prod.videoRatio || '16/9'}')}">
-          <img src="${prod.videoPoster || `https://vumbnail.com/${prod.vimeoId}.jpg`}"
-               alt="Vignette vidéo symptôme"
-               onerror="this.style.display='none'" />
-          <div class="play-btn"></div>
-          <div class="video-caption">▶ Voir la vidéo du symptôme</div>
-        </div>
-      ` : ''}
+      ${prod.vimeoId ? (function(){
+        const _ratio = prod.videoRatio || '16/9';
+        const _poster = prod.videoPoster || 'https://vumbnail.com/' + prod.vimeoId + '.jpg';
+        const _thumbClass = 'video-thumb' + (prod.videoRatio === '1/1' ? ' square' : '');
+        return '<div class="' + _thumbClass + '"'
+          + ' onclick="openVideoModal(\'' + prod.vimeoId + '\',\'' + _ratio + '\')"'
+          + ' role="button" tabindex="0"'
+          + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openVideoModal(\'' + prod.vimeoId + '\',\'' + _ratio + '\')}">'
+          + '<img src="' + _poster + '" alt="Vignette vidéo symptôme" onerror="this.style.display=\'none\'" />'
+          + '<div class="play-btn"></div>'
+          + '<div class="video-caption">▶ Voir la vidéo du symptôme</div>'
+          + '</div>';
+      })() : ''}
       <div class="symptom-text">« ${prod.symptom} »</div>
     </div>
     ${alreadyAnswered ? '' : `
@@ -1457,6 +1456,10 @@ function _qrTickJsQR(ts) {
 
 /* ── Démarrage de l'application ── */
 window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
+.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
