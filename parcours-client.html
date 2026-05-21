@@ -528,7 +528,7 @@ function selectOption(i) {
 
 function validateAnswer() {
   if (quizState.selectedOption === null || quizState.answered) return;
-  stopTimer();
+  // Ne pas stopper le timer entre les questions — il tourne globalement sur les 4 questions
   quizState.answered = true;
   const q = QUIZ[quizState.currentQ];
   const selected = quizState.selectedOption;
