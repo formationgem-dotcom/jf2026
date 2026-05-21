@@ -904,19 +904,6 @@ async function showProduct(productId) {
     <div class="product-type">${prod.type}</div>
     <div class="symptom-card ${meta.cls}">
       <div class="symptom-label">📢 Ce que dit le client</div>
-      ${prod.vimeoId ? (function(){
-        const _ratio = prod.videoRatio || '16/9';
-        const _poster = prod.videoPoster || 'https://vumbnail.com/' + prod.vimeoId + '.jpg';
-        const _thumbClass = 'video-thumb' + (prod.videoRatio === '1/1' ? ' square' : '');
-        return '<div class="' + _thumbClass + '"'
-          + ' onclick="openVideoModal(\'' + prod.vimeoId + '\',\'' + _ratio + '\')"'
-          + ' role="button" tabindex="0"'
-          + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openVideoModal(\'' + prod.vimeoId + '\',\'' + _ratio + '\')}">'
-          + '<img src="' + _poster + '" alt="Vignette vidéo symptôme" onerror="this.style.display=\'none\'" />'
-          + '<div class="play-btn"></div>'
-          + '<div class="video-caption">▶ Voir la vidéo du symptôme</div>'
-          + '</div>';
-      })() : ''}
       <div class="symptom-text">« ${prod.symptom} »</div>
     </div>
     ${alreadyAnswered ? '' : `
@@ -1416,50 +1403,6 @@ function _qrTickJsQR(ts) {
 
 /* ── Démarrage de l'application ── */
 window.addEventListener('DOMContentLoaded', init);
-</script>
-</body>
-</html>
-  }
-}
-
-function _qrTickJsQR(ts) {
-  if (!_qrActive) return;
-  if (ts - _qrLastTick < 250) { _qrRaf = requestAnimationFrame(_qrTickJsQR); return; }
-  _qrLastTick = ts;
-  const video = document.getElementById('qr-video');
-  const canvas = document.getElementById('qr-canvas');
-  if (!video || !canvas || video utilisez un autre navigateur ou activez le Wi-Fi';
-      }
-    }, 2000);
-  }
-}
-
-function _qrTickJsQR(ts) {
-  if (!_qrActive) return;
-  if (ts - _qrLastTick < 250) { _qrRaf = requestAnimationFrame(_qrTickJsQR); return; }
-  _qrLastTick = ts;
-  const video = document.getElementById('qr-video');
-  const canvas = document.getElementById('qr-canvas');
-  if (!video || !canvas || video.readyState < video.HAVE_ENOUGH_DATA) {
-    _qrRaf = requestAnimationFrame(_qrTickJsQR);
-    return;
-  }
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0);
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const code = jsQR(imageData.data, imageData.width, imageData.height);
-  if (code) { _handleQrRaw(code.data, document.getElementById('qr-status')); return; }
-  _qrRaf = requestAnimationFrame(_qrTickJsQR);
-}
-
-/* ── Démarrage de l'application ── */
-window.addEventListener('DOMContentLoaded', init);
-</script>
-</body>
-</html>
-.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
