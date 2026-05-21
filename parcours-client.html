@@ -190,63 +190,49 @@ const TEAMS = Array.from({length: 40}, (_, i) => ({
 const QUIZ = [
   {
     id: "PAR-Q1",
-    question: "Un client rapporte son téléviseur acheté il y a 20 mois avec un défaut apparu spontanément. Quelle est la durée légale de garantie de conformité applicable en France depuis 2022 ?",
+    question: "Quels sont les montants des bonus réparation ?",
     options: [
-      "12 mois",
-      "18 mois",
-      "24 mois",
-      "36 mois"
+      "De 5€ à 30€",
+      "De 15€ à 60€",
+      "De 30€ à 70€",
+      "Je ne sais pas"
     ],
-    correct: 2,
-    explanation: "La garantie légale de conformité est de 24 mois en France depuis le 1er janvier 2022 (directive EU 2019/771). Durant les 12 premiers mois, le défaut est présumé antérieur à la livraison sans preuve contraire."
+    correct: 1,
+    explanation: "Le bonus réparation Darty Max s'étend de 15€ à 60€ selon la catégorie et le montant de la réparation. Un argument clé pour valoriser l'abonnement auprès du client !"
   },
   {
     id: "PAR-Q2",
-    question: "Un client apporte sa cafetière à grain qui « ne fait plus de café ». Vous constatez qu'elle n'a jamais été détartrée depuis son achat il y a 3 ans. Quelle est la première action à mener ?",
+    question: "Depuis quelle date les abonnés Darty Max sont-ils éligibles au bonus réparation ?",
     options: [
-      "Enregistrer un bon de dépôt SAV",
-      "Proposer un échange sous garantie commerciale",
-      "Lancer un cycle de détartrage en magasin devant le client",
-      "Contacter le fabricant pour un devis de réparation"
+      "1er janvier 2026",
+      "1er mars 2026",
+      "12 avril 2026",
+      "12 mai 2026"
     ],
-    correct: 2,
-    explanation: "Le calcaire est la première cause de pannes des cafetières. Un détartrage en magasin résout la majorité des cas sans envoi SAV : c'est du filtering magasin (+2 pts dans l'Escape Gamme !)."
+    correct: 3,
+    explanation: "Les abonnés Darty Max sont éligibles au bonus réparation depuis le 12 mai 2026. Pensez à vérifier la date d'abonnement du client lors de la prise en charge."
   },
   {
     id: "PAR-Q3",
-    question: "Un client réclame un remboursement pour un produit en panne sous garantie légale de conformité. Quel est l'ordre légal des recours ?",
+    question: "Un client est abonné à Darty Max Essentiel Multimédia depuis 6 mois. Il vient faire réparer un ordinateur portable. Le montant du bonus réparation pour un ordinateur est de 50€. Sera-t-il éligible ?",
     options: [
-      "Remboursement immédiat, toujours possible",
-      "Réparation ou remplacement en 1er lieu ; remboursement seulement si impossible ou trop long",
-      "Avoir commercial uniquement, au choix du vendeur",
-      "Échange immédiat sans condition, au choix du client"
+      "Oui sans conditions",
+      "Oui à condition que le produit soit éligible",
+      "Non"
     ],
     correct: 1,
-    explanation: "La garantie légale prévoit une hiérarchie stricte : mise en conformité (réparation ou remplacement) d'abord, puis remboursement uniquement si impossible, disproportionnée ou non effectuée dans un délai raisonnable."
+    explanation: "Oui, mais sous réserve que le produit soit bien éligible au bonus réparation. L'abonnement Essentiel Multimédia couvre les produits multimédia — l'ordinateur portable en fait partie. Vérifiez la liste des produits éligibles !"
   },
   {
     id: "PAR-Q4",
-    question: "Un client apporte ses écouteurs sans fil car « un seul fonctionne ». Quelle est la première vérification à effectuer avant d'envisager un envoi en réparation ?",
+    question: "Mon client se présente au comptoir avec un produit en panne. Il n'est pas abonné Darty Max. Que peut-on lui proposer ?",
     options: [
-      "Envoyer directement en atelier SAV sans test",
-      "Effectuer la procédure de reset (remise en boîtier + appui long)",
-      "Proposer un remplacement immédiat",
-      "Vérifier la compatibilité Bluetooth avec le téléphone du client"
-    ],
-    correct: 1,
-    explanation: "La désynchronisation d'un écouteur est la cause la plus fréquente. La procédure de reset standard (remise dans le boîtier + maintien 10 s) resynchronise les deux écouteurs dans ~80 % des cas — filtering pur."
-  },
-  {
-    id: "PAR-Q5",
-    question: "Dans l'Escape Gamme JF2026, une équipe répond correctement « Filtering magasin » sur un produit, saisit le bon N° de série, mais se trompe sur le mot-clé SAVVY. Quel est son score total pour cet atelier ?",
-    options: [
-      "+4 points",
-      "+3 points",
-      "+2 points",
-      "+1 point"
+      "Prendre en charge son produit gratuitement en s'abonnant",
+      "Prendre en charge son produit au tarif hors garantie, il n'avait qu'à s'abonner avant",
+      "Prendre en charge son produit avec la promo HG : il s'abonne à Darty Max et la réparation ne lui coûte que 49,98€ (tout compris)"
     ],
     correct: 2,
-    explanation: "Filtering correct = +2 pts · N° de série correct = +1 pt · Mot-clé SAVVY incorrect = −1 pt → Total = +2 +1 −1 = +2 points. Lisez bien la contribution SAVVY avant de valider !"
+    explanation: "La promo HG est la solution idéale : le client s'abonne à Darty Max et bénéficie d'une prise en charge complète pour 49,98€ tout compris. Double bénéfice : il repart réparé ET abonné !"
   }
 ];
 
@@ -469,7 +455,8 @@ function showIntro() {
       <div style="font-size:60px;margin-bottom:16px">🗺️</div>
       <div style="font-size:22px;font-weight:900;margin-bottom:10px;color:var(--par2)">Quiz Parcours Client</div>
       <div style="font-size:14px;color:#aaa;line-height:1.6;margin-bottom:28px">
-        5 questions sur la garantie, le diagnostic et les droits du consommateur.<br><br>
+        4 questions sur le bonus réparation et le parcours client Darty Max.<br>
+        ⏱️ <strong style="color:var(--white)">5 minutes</strong> pour répondre aux 4 questions.<br><br>
         <strong style="color:var(--white)">Scoring :</strong><br>
         ✅ Bonne réponse : <strong style="color:#27AE60">+1 point</strong><br>
         ❌ Mauvaise réponse : <strong style="color:#C00000">−1 point</strong>
@@ -521,7 +508,13 @@ function showQuestion(qIndex) {
     <div class="options-list">${optionsHtml}</div>
     <button class="btn-validate" id="btn-validate" onclick="validateAnswer()" disabled>Valider ma réponse</button>
   </div>`);
-  startTimer(5 * 60);
+  // Le timer de 5 min est global : il démarre une seule fois au début du quiz
+  // et continue de tourner entre les questions.
+  if (qIndex === 0) {
+    startTimer(5 * 60);
+  } else {
+    _updateTimerUI(); // rafraîchit l'affichage avec le temps restant
+  }
 }
 
 function selectOption(i) {
@@ -579,10 +572,10 @@ async function showFinalResults() {
 
   // Emoji et message selon score
   let emoji = '😐', msg = 'Pas mal !';
-  if (totalScore >= 4)  { emoji = '🏆'; msg = 'Excellent !'; }
-  else if (totalScore >= 2) { emoji = '🎉'; msg = 'Bien joué !'; }
+  if (totalScore >= 3)       { emoji = '🏆'; msg = 'Excellent !'; }
+  else if (totalScore >= 1)  { emoji = '🎉'; msg = 'Bien joué !'; }
   else if (totalScore <= -2) { emoji = '💪'; msg = 'Il faut travailler !'; }
-  else if (totalScore < 0)  { emoji = '😬'; msg = 'Peut mieux faire'; }
+  else if (totalScore < 0)   { emoji = '😬'; msg = 'Peut mieux faire'; }
 
   // Détail des réponses
   const detailHtml = quizState.answers.map((a, i) => {
