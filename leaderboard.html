@@ -12,94 +12,94 @@
 <style>
 :root {
   --navy: #1A1A2E; --navy2: #2E2E5E;
-  --blue: #1F4E79; --blue2: #2E75B6; --blue-l: #DEEAF1;
-  --coffee: #5C3317; --coffee2: #8B6914; --coffee-l: #FDF0D5;
-  --mul: #4B2A82; --mul2: #8A4FC7; --mul-l: #EADDF7;
-  --green: #375623; --green-l: #D5F0C3;
-  --gold: #C9A227; --white: #FFFFFF; --gray: #F2F2F2; --text: #222;
+  --blue: #1F4E79; --blue2: #1A5EA8; --blue-l: #DEEAF1;
+  --coffee: #5C3317; --coffee2: #7a5400; --coffee-l: #FDF0D5;
+  --mul: #4B2A82; --mul2: #6A30A8; --mul-l: #EADDF7;
+  --green: #1a6b2a; --green-l: #D5F0C3;
+  --gold: #A07800; --white: #FFFFFF; --gray: #F2F2F2; --text: #111;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); color: var(--white); min-height: 100vh; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #F5F6FA; color: #111; min-height: 100vh; }
 
-.header { background: var(--navy2); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 12px rgba(0,0,0,.4); position: sticky; top: 0; z-index: 10; }
+.header { background: #FFFFFF; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,.15); position: sticky; top: 0; z-index: 10; border-bottom: 3px solid var(--gold); }
 .header-left { display: flex; align-items: center; gap: 12px; }
-.header-logo { height: 40px; border-radius: 6px; object-fit: contain; }
-.header-title { font-size: 18px; font-weight: 800; color: var(--gold); }
-.header-subtitle { font-size: 12px; color: #aaa; margin-top: 2px; }
+.header-logo { height: 44px; border-radius: 6px; object-fit: contain; }
+.header-title { font-size: 22px; font-weight: 800; color: #111; }
+.header-subtitle { font-size: 13px; color: #555; margin-top: 2px; }
 .header-right { display: flex; gap: 10px; align-items: center; }
-.btn-admin { background: var(--navy); color: #aaa; border: 1px solid #444; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-admin { background: #eee; color: #333; border: 1px solid #ccc; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
 
 /* LIVE INDICATOR */
-.live-bar { background: linear-gradient(90deg, #1e3a1e, #2a502a); padding: 8px 24px; display: flex; align-items: center; gap: 8px; font-size: 13px; }
-.live-dot { width: 8px; height: 8px; background: #4caf50; border-radius: 50%; animation: pulse 1.5s infinite; }
+.live-bar { background: #e8f5e9; padding: 10px 24px; display: flex; align-items: center; gap: 8px; font-size: 14px; color: #1a6b2a; font-weight: 600; border-bottom: 1px solid #c8e6c9; }
+.live-dot { width: 10px; height: 10px; background: #2e7d32; border-radius: 50%; animation: pulse 1.5s infinite; }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
 
 /* PODIUM */
-.podium { display: flex; justify-content: center; align-items: flex-end; gap: 12px; padding: 24px 16px 8px; }
-.podium-item { text-align: center; flex: 1; max-width: 120px; }
-.podium-name { font-size: 12px; font-weight: 700; margin-bottom: 6px; padding: 0 4px; word-break: break-word; min-height: 32px; display: flex; align-items: center; justify-content: center; }
+.podium { display: flex; justify-content: center; align-items: flex-end; gap: 12px; padding: 28px 16px 8px; }
+.podium-item { text-align: center; flex: 1; max-width: 140px; }
+.podium-name { font-size: 15px; font-weight: 800; color: #111; margin-bottom: 6px; padding: 0 4px; word-break: break-word; min-height: 36px; display: flex; align-items: center; justify-content: center; }
 .podium-block { border-radius: 10px 10px 0 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 8px; }
-.podium-block.p1 { background: linear-gradient(135deg, #b8870b, var(--gold)); height: 90px; }
-.podium-block.p2 { background: linear-gradient(135deg, #6a6a6a, #aaa); height: 70px; }
-.podium-block.p3 { background: linear-gradient(135deg, #7a4010, #cd7f32); height: 55px; }
-.podium-medal { font-size: 24px; }
-.podium-score { font-size: 18px; font-weight: 900; color: var(--navy); }
+.podium-block.p1 { background: linear-gradient(135deg, #b8870b, #E6B800); height: 100px; }
+.podium-block.p2 { background: linear-gradient(135deg, #888, #bbb); height: 78px; }
+.podium-block.p3 { background: linear-gradient(135deg, #7a4010, #cd7f32); height: 62px; }
+.podium-medal { font-size: 28px; }
+.podium-score { font-size: 20px; font-weight: 900; color: #111; }
 
 /* TABLE */
 .table-wrap { padding: 0 16px 32px; overflow-x: auto; }
 .rank-table { width: 100%; border-collapse: collapse; min-width: 720px; }
-.rank-table th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #aaa; padding: 10px 8px; text-align: left; border-bottom: 1px solid #333; white-space: nowrap; }
-.rank-table td { padding: 12px 8px; border-bottom: 1px solid #222; vertical-align: middle; }
+.rank-table th { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #444; padding: 12px 10px; text-align: left; border-bottom: 2px solid #ccc; white-space: nowrap; background: #fff; }
+.rank-table td { padding: 14px 10px; border-bottom: 1px solid #ddd; vertical-align: middle; background: #fff; }
 .rank-table tr:last-child td { border-bottom: none; }
-.rank-table tr:hover td { background: rgba(255,255,255,.03); }
+.rank-table tr:hover td { background: #f0f4ff; }
 
-.rank-num { font-size: 18px; font-weight: 900; color: #555; width: 36px; }
+.rank-num { font-size: 20px; font-weight: 900; color: #999; width: 40px; }
 .rank-num.top { color: var(--gold); }
-.team-name { font-size: 15px; font-weight: 700; }
-.team-members { font-size: 11px; color: #888; margin-top: 2px; font-style: italic; }
-.team-sub { font-size: 12px; color: #777; margin-top: 2px; }
-.score-asp { color: var(--blue2); font-weight: 700; font-size: 14px; }
-.score-caf { color: var(--coffee2); font-weight: 700; font-size: 14px; }
-.score-mul { color: var(--mul2); font-weight: 700; font-size: 14px; }
-.score-serial { color: var(--gold); font-weight: 700; font-size: 14px; }
-.score-keyword { color: #4caf50; font-weight: 700; font-size: 14px; }
-.score-total { font-size: 22px; font-weight: 900; color: var(--white); text-align: right; }
+.team-name { font-size: 18px; font-weight: 800; color: #111; }
+.team-members { font-size: 13px; color: #555; margin-top: 3px; font-style: italic; }
+.team-sub { font-size: 13px; color: #555; margin-top: 3px; }
+.score-asp { color: var(--blue2); font-weight: 800; font-size: 16px; }
+.score-caf { color: var(--coffee2); font-weight: 800; font-size: 16px; }
+.score-mul { color: var(--mul2); font-weight: 800; font-size: 16px; }
+.score-serial { color: var(--gold); font-weight: 800; font-size: 16px; }
+.score-keyword { color: var(--green); font-weight: 800; font-size: 16px; }
+.score-total { font-size: 26px; font-weight: 900; color: #111; text-align: right; }
 .score-total.leader { color: var(--gold); }
-.progress-bar { background: #333; border-radius: 4px; height: 4px; margin-top: 4px; overflow: hidden; }
+.progress-bar { background: #ddd; border-radius: 4px; height: 5px; margin-top: 5px; overflow: hidden; }
 .progress-fill { height: 100%; border-radius: 4px; transition: width .5s ease; }
 .fill-asp { background: var(--blue2); }
 .fill-caf { background: var(--coffee2); }
 .fill-mul { background: var(--mul2); }
 
 /* ADMIN PANEL */
-.admin-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 50; align-items: center; justify-content: center; padding: 20px; }
+.admin-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 50; align-items: center; justify-content: center; padding: 20px; }
 .admin-overlay.open { display: flex; }
-.admin-card { background: var(--navy2); border-radius: 16px; padding: 24px; width: 100%; max-width: 460px; max-height: 85vh; overflow-y: auto; }
-.admin-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
-.admin-sub { font-size: 13px; color: #aaa; margin-bottom: 20px; }
+.admin-card { background: #fff; color: #111; border-radius: 16px; padding: 24px; width: 100%; max-width: 460px; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 40px rgba(0,0,0,.25); }
+.admin-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; color: #111; }
+.admin-sub { font-size: 13px; color: #555; margin-bottom: 20px; }
 .pin-row { display: flex; gap: 10px; margin-bottom: 20px; }
-.pin-input { flex: 1; background: #1a1a2e; border: 2px solid #444; border-radius: 10px; padding: 12px; color: var(--white); font-size: 16px; text-align: center; letter-spacing: 4px; }
-.pin-btn { background: var(--gold); color: var(--navy); border: none; border-radius: 10px; padding: 12px 20px; font-weight: 800; font-size: 15px; cursor: pointer; }
+.pin-input { flex: 1; background: #f5f5f5; border: 2px solid #ccc; border-radius: 10px; padding: 12px; color: #111; font-size: 16px; text-align: center; letter-spacing: 4px; }
+.pin-btn { background: var(--gold); color: #fff; border: none; border-radius: 10px; padding: 12px 20px; font-weight: 800; font-size: 15px; cursor: pointer; }
 .admin-section { margin-bottom: 20px; }
-.admin-section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #aaa; margin-bottom: 10px; }
-.export-btn { background: #0e3a1a; color: #4caf50; border: 1px solid #4caf50; border-radius: 10px; padding: 12px 18px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; margin-bottom: 8px; }
-.export-btn:hover { background: #1a5a28; }
-.reset-btn { background: #3a0a0a; color: #ff6b6b; border: 1px solid #c00; border-radius: 10px; padding: 12px 18px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; }
-.reset-btn:hover { background: #500; }
-.close-btn { background: #333; color: var(--white); border: none; border-radius: 10px; padding: 12px; font-size: 14px; cursor: pointer; width: 100%; margin-top: 8px; }
+.admin-section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #555; margin-bottom: 10px; }
+.export-btn { background: #e8f5e9; color: #1a6b2a; border: 1px solid #4caf50; border-radius: 10px; padding: 12px 18px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; margin-bottom: 8px; }
+.export-btn:hover { background: #c8e6c9; }
+.reset-btn { background: #fff0f0; color: #c00; border: 1px solid #c00; border-radius: 10px; padding: 12px 18px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; }
+.reset-btn:hover { background: #ffd0d0; }
+.close-btn { background: #eee; color: #333; border: none; border-radius: 10px; padding: 12px; font-size: 14px; cursor: pointer; width: 100%; margin-top: 8px; }
 
 /* STATS BAR */
-.stats-bar { display: flex; gap: 0; background: var(--navy2); padding: 12px 24px; border-top: 1px solid #333; }
+.stats-bar { display: flex; gap: 0; background: #fff; padding: 14px 24px; border-top: 2px solid #ddd; }
 .stat { flex: 1; text-align: center; }
-.stat-value { font-size: 20px; font-weight: 900; color: var(--gold); }
-.stat-label { font-size: 10px; color: #777; text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+.stat-value { font-size: 24px; font-weight: 900; color: var(--gold); }
+.stat-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
 
 /* LOADING */
-.loading { text-align: center; padding: 60px 20px; }
-.spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,.2); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 16px; }
+.loading { text-align: center; padding: 60px 20px; color: #555; }
+.spinner { width: 40px; height: 40px; border: 3px solid #ddd; border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 16px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.no-data { text-align: center; padding: 40px 20px; color: #777; }
+.no-data { text-align: center; padding: 40px 20px; color: #555; }
 </style>
 </head>
 <body>
@@ -114,14 +114,14 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--navy); colo
   </div>
   <div class="header-right">
     <button class="btn-admin" onclick="toggleAdmin()">⚙️ Admin</button>
-    <a href="index.html" style="background:var(--navy2);color:#aaa;border:1px solid #444;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;text-decoration:none;">← Jeu</a>
+    <a href="index.html" style="background:#eee;color:#333;border:1px solid #ccc;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;text-decoration:none;">← Jeu</a>
   </div>
 </div>
 
 <div class="live-bar">
   <div class="live-dot"></div>
   <span>Mise à jour en temps réel</span>
-  <span style="margin-left:auto;color:#666;font-size:11px" id="last-update">—</span>
+  <span style="margin-left:auto;color:#2e7d32;font-size:13px;font-weight:600" id="last-update">—</span>
 </div>
 
 <div id="main-content"><div class="loading"><div class="spinner"></div><p>Connexion...</p></div></div>
@@ -391,7 +391,7 @@ function renderLeaderboard(data, teamsData, quizData) {
       ? `<div class="team-members">${t.members.join(' · ')}</div>`
       : '';
     const fmt = v => (v > 0 ? '+' : '') + v;
-    const parColor = t.par > 0 ? '#1ABC9C' : (t.par < 0 ? 'var(--red)' : '#aaa');
+    const parColor = t.par > 0 ? '#1a7a3a' : (t.par < 0 ? '#c00' : '#888');
     tableHtml += `<tr>
       <td><div class="rank-num ${isTop?'top':''}">${rank}</div></td>
       <td>
@@ -473,7 +473,7 @@ function showAdminPanel() {
     <div class="admin-section">
       <div class="admin-section-title">📊 Export des résultats</div>
       <button class="export-btn" onclick="exportXLSX()">📥 Télécharger les résultats (Excel)</button>
-      <div style="font-size:11px;color:#666;margin-top:4px">4 onglets : Résumé · Aspiration · Café · Multimédia — toutes les réponses détaillées</div>
+      <div style="font-size:12px;color:#444;margin-top:4px">4 onglets : Résumé · Aspiration · Café · Multimédia — toutes les réponses détaillées</div>
     </div>
 
     <div class="admin-section">
@@ -483,7 +483,7 @@ function showAdminPanel() {
           <span style="color:var(--gold);font-weight:900;width:20px">${i+1}.</span>
           <span style="flex:1">
             <strong>${t.name}</strong>
-            ${t.members?.length > 0 ? `<br><span style="color:#888;font-size:11px">${t.members.join(', ')}</span>` : ''}
+            ${t.members?.length > 0 ? `<br><span style="color:#555;font-size:12px">${t.members.join(', ')}</span>` : ''}
           </span>
           <span style="color:var(--gold);font-weight:700">${t.total > 0 ? '+' : ''}${t.total} pts</span>
         </div>`).join('')}
@@ -492,7 +492,7 @@ function showAdminPanel() {
     <div class="admin-section">
       <div class="admin-section-title">🛠️ Gestion des équipes</div>
       <button class="export-btn" onclick="loadTeamEditor()" style="margin-bottom:6px">✏️ Modifier / Déverrouiller une équipe</button>
-      <div style="font-size:11px;color:#666">Corrige une erreur de saisie ou libère un slot bloqué</div>
+      <div style="font-size:12px;color:#444">Corrige une erreur de saisie ou libère un slot bloqué</div>
       <div id="team-editor-zone" style="margin-top:12px"></div>
     </div>
 
@@ -507,30 +507,30 @@ async function loadTeamEditor() {
   if (!db) { alert('Firebase non connecté.'); return; }
   const zone = document.getElementById('team-editor-zone');
   if (!zone) return;
-  zone.innerHTML = '<div style="color:#aaa;font-size:12px">Chargement…</div>';
+  zone.innerHTML = '<div style="color:#555;font-size:13px">Chargement…</div>';
 
   try {
     const snap = await db.ref('/teams').get();
     const teams = snap.val() || {};
     if (Object.keys(teams).length === 0) {
-      zone.innerHTML = '<div style="color:#aaa;font-size:12px">Aucune équipe inscrite.</div>';
+      zone.innerHTML = '<div style="color:#555;font-size:13px">Aucune équipe inscrite.</div>';
       return;
     }
 
     const rows = Object.values(teams).sort((a,b) => (a.id||'').localeCompare(b.id||'')).map(t => `
-      <div style="background:#1a1a3a;border-radius:10px;padding:10px 12px;margin-bottom:8px">
+      <div style="background:#f5f6fa;border:1px solid #ddd;border-radius:10px;padding:10px 12px;margin-bottom:8px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:13px;font-weight:700;color:var(--gold)">${t.id}</span>
-          <span style="font-size:11px;color:${t.locked ? '#4caf50' : '#f44336'}">${t.locked ? '🔒 Verrouillé' : '🔓 Libre'}</span>
+          <span style="font-size:14px;font-weight:700;color:#A07800">${t.id}</span>
+          <span style="font-size:12px;color:${t.locked ? '#1a6b2a' : '#c00'}">${t.locked ? '🔒 Verrouillé' : '🔓 Libre'}</span>
         </div>
-        <div style="font-size:12px;color:#ccc;margin-bottom:8px">
+        <div style="font-size:13px;color:#222;margin-bottom:8px">
           <strong>${t.name || '—'}</strong><br>
-          <span style="color:#888">${(t.members||[]).join(', ') || 'Aucun membre'}</span>
+          <span style="color:#555">${(t.members||[]).join(', ') || 'Aucun membre'}</span>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button onclick="editTeam('${t.id}')" style="background:#2a4a8a;border:none;color:#fff;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer">✏️ Modifier</button>
-          <button onclick="unlockTeam('${t.id}')" style="background:#5a3a00;border:none;color:#ffb300;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer">🔓 Déverrouiller</button>
-          <button onclick="deleteTeam('${t.id}')" style="background:#5a1a1a;border:none;color:#ff6b6b;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer">🗑️ Supprimer</button>
+          <button onclick="editTeam('${t.id}')" style="background:#1A5EA8;border:none;color:#fff;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer">✏️ Modifier</button>
+          <button onclick="unlockTeam('${t.id}')" style="background:#fff3e0;border:1px solid #A07800;color:#A07800;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer">🔓 Déverrouiller</button>
+          <button onclick="deleteTeam('${t.id}')" style="background:#fff0f0;border:1px solid #c00;color:#c00;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer">🗑️ Supprimer</button>
         </div>
       </div>`).join('');
 
@@ -551,16 +551,16 @@ async function editTeam(teamId) {
   const membersStr = (t.members || []).join(', ');
 
   zone.innerHTML = `
-    <div style="background:#1a1a3a;border-radius:10px;padding:14px;border:1px solid var(--gold)">
-      <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:12px">✏️ Modifier — ${teamId}</div>
+    <div style="background:#fffdf0;border-radius:10px;padding:14px;border:2px solid var(--gold)">
+      <div style="font-size:14px;font-weight:700;color:#A07800;margin-bottom:12px">✏️ Modifier — ${teamId}</div>
 
-      <label style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">Nom de l'équipe</label>
+      <label style="font-size:12px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">Nom de l'équipe</label>
       <input id="edit-team-name" type="text" value="${(t.name||'').replace(/"/g,'&quot;')}"
-        style="width:100%;box-sizing:border-box;background:#0d0d2b;border:1px solid #444;border-radius:8px;color:#fff;padding:8px 10px;font-size:14px;margin-bottom:12px" />
+        style="width:100%;box-sizing:border-box;background:#fff;border:1px solid #bbb;border-radius:8px;color:#111;padding:8px 10px;font-size:14px;margin-bottom:12px" />
 
-      <label style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">Participants (séparés par des virgules)</label>
+      <label style="font-size:12px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">Participants (séparés par des virgules)</label>
       <input id="edit-team-members" type="text" value="${membersStr.replace(/"/g,'&quot;')}"
-        style="width:100%;box-sizing:border-box;background:#0d0d2b;border:1px solid #444;border-radius:8px;color:#fff;padding:8px 10px;font-size:14px;margin-bottom:14px"
+        style="width:100%;box-sizing:border-box;background:#fff;border:1px solid #bbb;border-radius:8px;color:#111;padding:8px 10px;font-size:14px;margin-bottom:14px"
         placeholder="Prénom1, Prénom2, Prénom3" />
 
       <div style="display:flex;gap:8px">
